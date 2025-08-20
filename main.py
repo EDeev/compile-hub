@@ -144,6 +144,21 @@ async def register(user: UserRegister):
     
     return {"message": "Successfully signed up, please login", "success": True}
 
+@app.get("/api/auth/check-username")
+async def check_username_availability(username: str):
+    if not username or len(username.strip()) == 0:
+        raise HTTPException(400, "Username cannot be empty")
+    
+    if len(username) < 3 or len(username) > 20:
+        raise HTTPException(400, "Username must be between 3 and 20 characters")
+    
+    existing_user = db.get_user_by_username(username.strip())
+    
+    return {
+        "available": existing_user is None,
+        "username": username.strip()
+    }
+
 @app.post("/api/auth/login")
 async def login(user: UserLogin):
     db_user = db.get_user_by_username(user.username)
