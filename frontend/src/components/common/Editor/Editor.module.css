@@ -1,0 +1,114 @@
+.editorContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4% 5%;
+}
+
+.helloMessage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4% 5%;
+}
+.helloMessage > h1 {
+  font-size: calc(var(--font-size-lg) + 14px);
+}
+.helloMessage > h1 > span {
+  color: var(--primary);
+}
+.helloMessage > p {
+  font-size: calc(var(--font-size-lg) + 2px);
+  margin-top: var(--spacing-xs);
+}
+
+.editor {
+  width: 100%;
+}
+
+.controlPanel {
+  display: flex;
+
+  gap: var(--spacing-sm);
+  padding: calc(var(--spacing-sm) - 2px) var(--spacing-sm);
+  background-color: var(--bg-secondary);
+  width: max-content;
+  border: 1px solid var(--border-color);
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+  border-bottom: none;
+  align-items: center;
+}
+
+.fileName {
+  font-size: calc(var(--font-size-md) + 1px);
+}
+.controlPanel button {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  height: 30px;
+}
+
+.controlPanel > img {
+  width: 30px;
+}
+
+.consoleOutput {
+  color: var(--text-color);
+  font-family: monospace;
+  white-space: pre-wrap;
+  overflow-y: auto;
+}
+
+/* разделитель панелей */
+
+.panelGroup {
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.outputPanel {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  min-height: 100%;
+  margin: 0;
+  background: var(--bg-secondary);
+  position: relative;
+}
+
+.loadSpinnerContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.loadSpinner {
+  animation: spin 0.5s linear infinite;
+  color: var(--primary);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.resizeHandle {
+  background: var(--border-color);
+  width: 3px;
+  transition: var(--transition-normal);
+}
+
+.resizeHandle:hover {
+  background: var(--text-color);
+}
+
+resizeHandle:active {
+  background: var(--text-color);
+}

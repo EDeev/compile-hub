@@ -1,0 +1,7 @@
+.mainContainer > p {
+  margin-top: var(--spacing-md);
+}
+
+.mainContainer > ul {
+  margin-left: 19px;
+}

@@ -1,0 +1,38 @@
+.modal {
+  position: fixed;
+  min-width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(2px);
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal > div {
+  transition: var(--transition-normal);
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  animation: modalScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.errorContent {
+  border: 1px solid var(--border-error-color);
+}
+
+@keyframes modalScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

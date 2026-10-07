@@ -1,0 +1,14 @@
+{
+  "bracketSameLine": false,
+  "jsxSingleQuote": true,
+  "arrowParens": "always",
+  "printWidth": 80,
+  "trailingComma": "none",
+  "semi": false,
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "options": { "printWidth": 100 }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  user-select: none;
+}
+.logo span {
+  font-weight: 500;
+  font-size: var(--font-size-xl);
+}
+
+.compact span {
+  display: none;
+}

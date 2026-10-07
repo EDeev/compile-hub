@@ -1,0 +1,27 @@
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.headerContainer {
+  max-width: 1920px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-lg);
+}
+
+.headerButtons {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.themeSwitcher {
+  margin-right: var(--spacing-sm);
+}

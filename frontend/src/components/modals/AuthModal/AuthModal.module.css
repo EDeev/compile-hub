@@ -1,0 +1,73 @@
+.content {
+  max-width: 330px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-lg);
+  gap: var(--spacing-lg);
+}
+
+.content h3 {
+  font-weight: 400;
+  user-select: none;
+}
+.content .logo {
+  cursor: alias;
+}
+.authForm {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: var(--spacing-md);
+  gap: calc(var(--spacing-lg) - 12px);
+  min-height: 225px;
+}
+
+.input {
+  margin-bottom: var(--spacing-sm);
+}
+
+.buttonGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-self: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: auto;
+}
+
+a {
+  font-size: var(--font-size-sm);
+  font-weight: 300;
+  text-align: center;
+}
+
+.statusMessage {
+  font-size: calc(var(--font-size-md) - 1px);
+  text-align: center;
+  order: -2;
+}
+
+.green {
+  color: var(--text-success);
+}
+.red {
+  color: var(--text-error);
+}
+
+.buttonLoadSpinner {
+  animation: spin 0.5s linear infinite;
+  color: var(--text-color);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

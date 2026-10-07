@@ -1,0 +1,152 @@
+/* Базовые стили остаются без изменений */
+.fileItem {
+  user-select: none;
+  position: relative;
+  width: 100%;
+  background-color: var(--bg-color);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-sm);
+  transition: var(--transition-normal);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.fileItem:hover,
+.fileItem.active {
+  background-color: var(--bg-secondary);
+}
+
+.icon {
+  margin-right: 12px;
+  width: 40px;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon img {
+  width: 100%;
+  height: 100%;
+}
+
+.fileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: var(--font-size-md);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.additionalInfo {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.options {
+  position: absolute;
+  right: -4px;
+}
+
+.options:hover {
+  color: var(--primary);
+}
+
+/* ========== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ DRAG & DROP ========== */
+
+/* Улучшения для выбранного элемента */
+.fileItem.selected {
+  background-color: var(--bg-secondary);
+  cursor: default;
+  opacity: 1;
+  border: 1px dashed var(--primary);
+}
+
+.fileItem.selected:hover {
+  border-color: var(--primary-hover);
+}
+
+.fileItem.selected .icon {
+  opacity: 0.7;
+}
+
+.fileItem.selected .fileName {
+  color: var(--primary-hover);
+}
+
+/* Улучшения для цели перетаскивания */
+/* .fileItem.dropTarget {} */
+
+.fileItem.dropTarget:hover {
+  background-color: rgba(62, 158, 17, 0.15);
+  border-color: var(--primary-hover);
+}
+
+/* .fileItem.dropTarget .icon {} */
+
+@keyframes dropTargetPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(62, 158, 17, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(62, 158, 17, 0);
+  }
+}
+
+@keyframes bounce {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Неактивное состояние во время перетаскивания */
+.fileItem.disabled {
+  filter: opacity(0.35);
+  cursor: not-allowed;
+}
+
+.fileItem.disabled:hover {
+  background-color: var(--bg-color);
+  transform: none;
+}
+
+/* Индикаторы состояния */
+.selectedBadge {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-md);
+  border-radius: 15px;
+  font-size: 18px;
+  font-weight: 500;
+  z-index: 10;
+}
+
+.dropHint {
+  position: absolute;
+  top: 35%;
+  right: var(--spacing-md);
+  color: var(--text-color);
+  font-size: 12px;
+  font-weight: 300;
+  z-index: 10;
+  white-space: nowrap;
+}
+/* ========== ПАНЕЛЬ РЕЖИМА ПЕРЕТАСКИВАНИЯ ========== */
+
+/* небольшой костыль для того чтобы блокировать скролл FileBar но оставлять полосу прокрутки видимой */
+/* ВРЕМЕННО  */
+.noScroll {
+  pointer-events: none; /* блокируем взаимодействие */
+}

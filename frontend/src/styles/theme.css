@@ -1,0 +1,43 @@
+:root {
+  --primary: #3e9e11;
+  --primary-hover: #4bc014;
+  --bg-color: #13151b;
+  --bg-secondary: #1a1d24;
+  --bg-error: #ff2020;
+  --text-color: #eeeeee;
+  --text-secondary: rgb(117, 117, 117);
+  --text-error: #ff2020;
+  --text-success: #3e9e11;
+  --menu-item-hover: rgba(74, 192, 20, 0.3);
+  --menu-item-hover-danger: rgba(255, 32, 32, 0.3);
+  --border-color: #434449;
+  --border-color-error: #ff2020;
+  --border-radius: 8px;
+
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 6px rgba(0, 0, 0, 0.06);
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 15px;
+  --spacing-xl: 25px;
+
+  --font-main:
+    "Inter", -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu,
+    Cantarell, sans-serif;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+
+  --input-height: 35px;
+
+  --transition-normal: 150ms ease;
+}
+
+[data-theme="light"] {
+  --bg-color: rgb(255, 255, 255);
+  --bg-secondary: rgb(240, 240, 240);
+  --text-color: rgba(17, 24, 39, 1);
+  --border-color: rgb(199, 197, 197);
+}

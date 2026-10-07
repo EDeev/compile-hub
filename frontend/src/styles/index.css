@@ -1,0 +1,120 @@
+@import "./reset.css";
+@import "./theme.css";
+@import "./fonts.css";
+
+/* --- ПРОБЛЕМЫ С ЛАГАНИЕМ ПРИ ИЗМЕНЕНИИ ТЕМЫ СВЯЗАНО C TRANSITION */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-main), sans-serif;
+  font-size: var(--font-size-md);
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+}
+.app {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  max-width: 1920px;
+  width: 100%;
+}
+
+/* code-mirror editor theme overrides */
+.cm-editor {
+  background: var(--bg-secondary);
+}
+.cm-gutters {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* prettier-ignore */
+h1, h2, h3, h4,
+p, span, a, label {
+  margin: 0;
+}
+
+/* prettier-ignore */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+}
+
+h3 {
+  font-size: 1.125rem;
+}
+
+h4 {
+  font-size: 1rem;
+}
+
+a {
+  text-decoration: none;
+  color: var(--text-color);
+  transition: var(--transition-normal);
+}
+
+a:hover {
+  color: var(--text-color);
+}
+
+.link {
+  position: relative;
+}
+
+.link::after {
+  position: absolute;
+  content: "";
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--text-color);
+}
+
+.link::after {
+  width: 0;
+  transition: 0.3s;
+}
+.link:hover:after {
+  width: 100%;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text-color) !important;
+  caret-color: var(--text-color) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+input:-moz-autofill,
+input:-moz-autofill:hover,
+input:-moz-autofill:focus {
+  background-color: transparent !important;
+  background: transparent !important;
+}

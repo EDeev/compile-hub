@@ -1,0 +1,243 @@
+.filebar {
+  width: 300px;
+  flex-shrink: 0;
+  height: 100%;
+  position: relative;
+  left: 0;
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow);
+}
+
+.hiddenFilebar {
+  margin-left: -298px;
+  box-shadow: none;
+}
+
+.filebarContainer {
+  background-color: var(--bg-secondary);
+  padding: var(--spacing-md) var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  border-right: 1px solid var(--border-color);
+  height: 100%;
+}
+
+.openMenuButton {
+  position: absolute;
+  width: 20px;
+  height: 40px;
+  background-color: var(--bg-secondary);
+  z-index: 1000;
+  top: 41%;
+  right: -19px;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.openMenuButton svg {
+  position: absolute;
+  top: 4px;
+  right: -5px;
+  color: var(--text-color);
+  transition: var(--transition-normal);
+
+  &:hover {
+    color: var(--primary);
+  }
+}
+
+.searchError {
+  text-align: center;
+}
+
+hr {
+  width: 106%;
+  margin: 0 -9px;
+  border: none;
+  color: var(--border-color);
+  background-color: var(--border-color);
+  height: 1px;
+}
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-sm) - 2px);
+  border-radius: var(--border-radius);
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+  padding-right: 6px;
+  margin-right: -4px;
+}
+
+.fileList::-webkit-scrollbar {
+  width: 3px;
+}
+
+.fileList::-webkit-scrollbar-thumb {
+  background-color: var(--text-secondary);
+  border-radius: var(--border-radius);
+}
+
+.createingButtons {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  user-select: none;
+}
+
+.createingButtons button {
+  width: 100%;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.moveActionsButtons {
+  width: 100%;
+}
+
+.actionButton {
+  font-weight: 300;
+  width: 30px;
+  height: 32px;
+  width: 100%;
+  background: transparent;
+  border: 2px solid var(--border-color);
+  color: var(--text-color);
+  border-radius: calc(var(--border-radius) / 1.1);
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+[data-theme="light"] {
+  .actionButton {
+    font-weight: 400 !important;
+  }
+}
+
+/* .actionButton:hover {} */
+
+/* .moveToRootButton {} */
+
+.moveToRootButton:hover {
+  border-color: var(--text-color);
+}
+
+.cancelButton {
+  margin-top: var(--spacing-xs);
+  color: var(--text-error);
+}
+
+.cancelButton:hover {
+  border-color: var(--text-error);
+}
+
+/*  ПАНЕЛЬ НАВИГАЦИИ */
+
+.navigation {
+  display: flex;
+  align-items: center;
+  margin: -5px 0;
+}
+
+.backButton {
+  width: 30px;
+  height: 30px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  color: var(--text-color);
+  cursor: pointer;
+  border-radius: calc(var(--border-radius) / 2);
+  transition: var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--spacing-sm);
+}
+
+.backButton:hover:not(:disabled) {
+  border-color: var(--text-color);
+  color: var(--text-color);
+}
+
+.backButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.currentPath {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--text-color);
+  user-select: none;
+}
+
+/* СПИСОК ФАЙЛОВ В РЕЖИМЕ ПЕРЕТАСКИВАНИЯ */
+
+.fileList.dragMode {
+  background-color: rgba(62, 158, 17, 0.011);
+  border: 1px solid rgba(62, 158, 17, 0.2);
+  padding: var(--spacing-xs);
+  margin-right: 0;
+  transition: var(--transition-normal);
+}
+
+.fileList.dragMode::-webkit-scrollbar {
+  width: 0;
+}
+
+/* ========== МОБИЛЬНАЯ АДАПТАЦИЯ ========== */
+
+/* @media (max-width: 768px) {
+  .dragModePanel {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    text-align: center;
+  }
+
+  .moveToRootButton {
+    margin-left: 0;
+    margin-top: var(--spacing-xs);
+    width: 100%;
+  }
+
+  .selectedBadge,
+  .dropHint {
+    font-size: 11px;
+    padding: 3px var(--spacing-xs);
+  }
+} */
+
+.loadSpinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  color: var(--primary);
+  animation: spin 0.5s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,46 @@
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  width: 100%;
+  user-select: none;
+}
+.optionContainer {
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+  border-radius: var(--border-radius);
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.optionContainer > span {
+  white-space: nowrap;
+  font-size: calc(var(--font-size-md) + 1px);
+}
+
+.fontSizeInput {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  user-select: none;
+}
+.fontSizeInput button {
+  font-size: var(--font-size-lg);
+  border: none;
+  height: 30px;
+  padding: 0;
+  min-width: 30px;
+  max-width: 30px;
+}
+
+.fontSizeInput input {
+  text-align: center;
+  display: flex;
+  padding: 0;
+  margin: 0;
+  width: 43px;
+  height: 31px;
+  margin-top: 2px;
+}

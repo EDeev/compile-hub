@@ -1,0 +1,72 @@
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  gap: var(--spacing-sm);
+  width: 100%;
+}
+
+.optionContainer {
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+  border-radius: var(--border-radius);
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.optionContainer > span {
+  white-space: nowrap;
+  font-size: calc(var(--font-size-md) + 1px);
+}
+
+.profileContainer {
+  display: flex;
+  gap: var(--spacing-md);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-color);
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.profileInfo > .name {
+  font-size: var(--font-size-lg);
+}
+
+.profileInfo > .id {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.profileImg {
+  border-radius: 50%;
+  background-color: red;
+  width: 64px;
+  height: 64px;
+}
+
+/* .profileImg > img {
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+} */
+
+.langSwitcher {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+.langSwitcher > img {
+  border: 1px solid var(--border-color);
+  border-radius: 15%;
+  width: 30px;
+}
+
+.logOutButton {
+  height: 35px;
+}
