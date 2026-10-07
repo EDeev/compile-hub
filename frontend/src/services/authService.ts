@@ -1,6 +1,4 @@
-import { useFileSystemStore } from "@/store/fileSystemStore"
 import { useUserStore } from "@/store/userStore"
-import { type User, type Item } from "@/types"
 
 export const AuthService = {
   async login(userData: { username: string; password: string }) {
@@ -55,9 +53,6 @@ export const AuthService = {
   },
 
   async register(userData: { email: string; username: string; password: string }) {
-    const { currentUser } = useUserStore.getState() // для миграции файлов
-    const guestFiles = currentUser.isGuest ? useFileSystemStore.getState().items : []
-
     const response = await fetch("http://95.31.185.229:9999/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

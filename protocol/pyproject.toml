@@ -1,0 +1,10 @@
+[project]
+name = "compilehub-protocol"
+version = "0.1.0"
+description = "Общие модели CompileHub: задачи, события запуска, вердикты, ключи Redis"
+requires-python = ">=3.12"
+dependencies = ["pydantic>=2.9"]
+
+[build-system]
+requires = ["uv_build>=0.9,<1"]
+build-backend = "uv_build"

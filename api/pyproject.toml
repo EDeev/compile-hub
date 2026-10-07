@@ -1,0 +1,30 @@
+[project]
+name = "compilehub-api"
+version = "0.1.0"
+description = "API CompileHub: аккаунты, файлы, запуски, поток вывода"
+requires-python = ">=3.12"
+dependencies = [
+    "compilehub-protocol",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic-settings>=2.6",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "alembic>=1.14",
+    "redis>=5.2",
+    "argon2-cffi>=23.1",
+    "pyjwt>=2.10",
+    "aiosmtplib>=3.0",
+    "prometheus-client>=0.21",
+    "uuid6>=2024.7",
+]
+
+[project.scripts]
+compilehub-api = "compilehub_api.__main__:main"
+
+[tool.uv.sources]
+compilehub-protocol = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.9,<1"]
+build-backend = "uv_build"

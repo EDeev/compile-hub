@@ -1,141 +1,33 @@
-# 🚀 CompileHub
+# CompileHub
 
-**Online Code Compilation Platform** — Backend сервер для веб-приложения онлайн компиляции и выполнения кода.
+Онлайн-компилятор: код пишется в браузере, сервер компилирует и выполняет его в песочнице
+и потоком отдаёт вывод, с интерактивным вводом. Аккаунты, файлы и папки, гостевой режим.
 
-> 🔧 **Статус проекта:** В активной разработке
+**Статус:** в разработке, переписывается на новый стек.
 
-## 📋 Описание
+**Стек:** Python 3.12 · FastAPI · PostgreSQL · Redis Streams · nsjail · React · TypeScript · Vite · CodeMirror · xterm.js
 
-CompileHub — это высокопроизводительный backend-сервис для онлайн IDE, поддерживающий компиляцию и выполнение кода на нескольких языках программирования. Проект реализует асинхронную архитектуру обработки запросов с системой очередей, rate limiting и детальной метрикой производительности.
+## Структура
 
-## 🛠️ Технологический стек
+| Папка | Что |
+|---|---|
+| `api/` | API на FastAPI: аккаунты, файлы, запуски, поток вывода по WebSocket |
+| `worker/` | воркер: задачи из очереди Redis → компиляция и запуск в nsjail |
+| `protocol/` | общие модели API и воркера: задачи, события, вердикты |
+| `frontend/` | веб-интерфейс на React |
+| `deploy/` | docker compose и конфиги nginx |
 
-### Core Framework
-- **FastAPI** — современный асинхронный веб-фреймворк
-- **Python 3.8+** — основной язык разработки
-- **SQLite** — встроенная база данных
+## Разработка
 
-### Компиляторы
-- **GCC (g++)** — компиляция C++17
-- **Python 3** — интерпретация Python кода
-- **Node.js** — выполнение JavaScript
+```sh
+uv sync --all-packages        # Python-пакеты в .venv
+uv run pytest -q              # тесты
+uv run ruff check . && uv run ruff format --check .
 
-### Дополнительные технологии
-- **asyncio** — асинхронная обработка задач
-- **Pydantic** — валидация данных
-- **Uvicorn** — ASGI сервер
-
-## ⚡ Ключевые возможности
-
-- ✅ **Multi-language Support** — C++, Python, JavaScript
-- ✅ **Асинхронная компиляция** — queue-based worker system
-- ✅ **User Management** — регистрация, аутентификация, файловая система
-- ✅ **Rate Limiting** — защита от перегрузки (30 req/min)
-- ✅ **Metrics & Monitoring** — статистика компиляций в реальном времени
-- ✅ **Security** — sanitization кода, защита от опасных операций
-- ✅ **Timeout Control** — ограничение времени выполнения (5s)
-
-## 📦 Установка и запуск
-
-### Требования
-```bash
-Python 3.8+
-Node.js (для JavaScript)
-GCC/G++ (для C++)
+cd frontend && npm ci && npm run dev
 ```
 
-### Установка зависимостей
-```bash
-pip install -r requirements.txt
-```
+## Авторы
 
-### Запуск сервера
-```bash
-python main.py
-```
-
-Сервер запустится на `http://192.168.3.29:9999`
-
-## 🏗️ Архитектура
-
-```
-compile-hub/
-├── main.py                 # FastAPI application, endpoints, worker
-├── database.py             # SQLite ORM, модели данных
-├── compilers/
-│   ├── base.py            # Базовый класс компилятора
-│   ├── cpp.py             # C++ compiler wrapper
-│   ├── python.py          # Python interpreter wrapper
-│   └── javascript.py      # Node.js wrapper
-├── requirements.txt        # Python dependencies
-└── README.md
-```
-
-### Основные компоненты
-
-#### 1. Compilation System
-- **Queue-based processing** — асинхронная очередь задач (max 100)
-- **Worker pattern** — dedicated background worker
-- **Multi-compiler support** — абстрактный интерфейс компиляторов
-
-#### 2. User Management
-- Регистрация и аутентификация
-- Персональная файловая система
-- Контроль лимитов (количество файлов, длина кода)
-
-#### 3. API Endpoints
-
-**Authentication:**
-- `POST /api/auth/register` — регистрация
-- `POST /api/auth/login` — вход
-- `GET /api/auth/check-username` — проверка доступности username
-
-**File Management:**
-- `GET /api/files` — список файлов пользователя
-- `DELETE /api/files/{id}` — удаление файла
-- `PATCH /api/files/{id}/move` — перемещение в папку
-- `POST /api/files/migrate` — миграция файлов
-
-**Compilation:**
-- `POST /api/compile/` — компиляция кода (с input)
-- `GET /api/compile/` — компиляция кода (query params)
-- `GET /api/code?fileId={id}` — получение кода файла
-
-**Monitoring:**
-- `GET /api/metrics` — метрики системы
-
-## 🔐 Безопасность
-
-- **Code Sanitization** — фильтрация опасных операций (`system`, `exec`, `eval`)
-- **Timeout Protection** — автоматическое прерывание (5 секунд)
-- **Output Limiting** — максимум 1MB вывода
-- **Rate Limiting** — 30 запросов в минуту на IP
-- **Password Hashing** — SHA-256
-
-## 📊 Метрики производительности
-
-Система собирает следующие метрики:
-- Общее количество компиляций
-- Количество неудачных компиляций
-- Success rate (%)
-- Среднее время компиляции
-- Активные пользователи
-- Размер очереди
-
-## 📄 Лицензия
-
-Этот проект является некоммерческим и распространяется под лицензией MIT.
-
-## 👨‍💻 Автор
-
-**Деев Егор Викторович** - Backend Developer  
-- GitHub: [@EDeev](https://github.com/EDeev)
-- Email: egor@deev.space
-- Telegram: [@Egor_Deev](https://t.me/Egor_Deev)
-
----
-
-<div align="center">
-  <sub>⭐ Если проект оказался полезным, поставьте звездочку на GitHub!</sub>
-  <p><sub>Создано с ❤️ от вашего дорогого - deev.space ©</sub></p>
-</div>
+- **Пётр Сапрыкин** ([@PetrSaprykin](https://github.com/PetrSaprykin)) — дизайн и исходный фронтенд
+- **Егор Деев** ([@EDeev](https://github.com/EDeev)) — бэкенд, песочница, фронтенд, деплой

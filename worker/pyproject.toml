@@ -1,0 +1,20 @@
+[project]
+name = "compilehub-worker"
+version = "0.1.0"
+description = "Воркер CompileHub: очередь Redis → компиляция и запуск в nsjail"
+requires-python = ">=3.12"
+dependencies = [
+    "compilehub-protocol",
+    "redis>=5.2",
+    "prometheus-client>=0.21",
+]
+
+[project.scripts]
+compilehub-worker = "compilehub_worker.__main__:main"
+
+[tool.uv.sources]
+compilehub-protocol = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.9,<1"]
+build-backend = "uv_build"

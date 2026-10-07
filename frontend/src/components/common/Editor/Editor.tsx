@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from "react"
 import CodeMirror from "@uiw/react-codemirror"
 import { javascript, javascriptLanguage } from "@codemirror/lang-javascript"
 import { python, pythonLanguage } from "@codemirror/lang-python"
-import { java, javaLanguage } from "@codemirror/lang-java"
+import { javaLanguage } from "@codemirror/lang-java"
 import { useUserStore } from "@/store/userStore"
 import { go, goLanguage } from "@codemirror/lang-go"
-import { cpp, cppLanguage } from "@codemirror/lang-cpp"
+import { cppLanguage } from "@codemirror/lang-cpp"
 import { atomone } from "@uiw/codemirror-theme-atomone"
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
 import styles from "./Editor.module.css"
@@ -39,7 +39,6 @@ export const Editor = () => {
     output,
     isCompiling,
     setCode,
-    awaitsInput,
     currentFile
   } = useEditorState()
 
