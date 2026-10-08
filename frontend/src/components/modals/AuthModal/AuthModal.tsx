@@ -38,7 +38,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isReg = false }) => {
   return (
     <div className={styles.content}>
       <Logo variant='compact' />
-      <h3>{t("auth.welcome")}</h3>
+      <h2>{t("auth.welcome")}</h2>
       <AuthForm
         mode={mode}
         isLoading={isLoading}

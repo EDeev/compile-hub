@@ -25,7 +25,13 @@ export const Console = () => {
       fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
       fontSize: useEditorSettings.getState().fontSize,
       scrollback: 5000,
-      theme: { background: "#272b33", foreground: "#d4d8df", cursor: "#61afef" }
+      theme: {
+        background: "#272b33",
+        foreground: "#e6e8eb",
+        cursor: "#61afef",
+        brightBlack: "#a7adb7",
+        red: "#ff7b7b"
+      }
     })
     const fit = new FitAddon()
     term.loadAddon(fit)

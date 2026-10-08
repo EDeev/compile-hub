@@ -50,6 +50,8 @@ export const Modal = () => {
     <div
       ref={modalRef}
       className={styles.modal}
+      role='dialog'
+      aria-modal='true'
       onMouseDown={handleMouseDown}
       onClick={handleBackdropClick}
     >

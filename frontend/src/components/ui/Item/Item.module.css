@@ -57,7 +57,7 @@
 }
 
 .options:hover {
-  color: var(--primary);
+  color: var(--accent);
 }
 
 /* ========== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ DRAG & DROP ========== */

@@ -150,7 +150,7 @@ export const Item: React.FC<ItemProps> = ({
     <div className={itemClasses} onClick={() => onClick?.()}>
       <span className={styles.icon}>
         {type === "folder" ? (
-          <img src={Icons.folderIcon} />
+          <img src={Icons.folderIcon} alt='' />
         ) : (
           fileIcon(name.split(".").reverse()[0].toLowerCase())
         )}
@@ -175,6 +175,7 @@ export const Item: React.FC<ItemProps> = ({
       {!isDragMode && (
         <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
           <DropdownMenu
+            label={t("files.actions", { name })}
             items={getMenuItems()}
             align='left'
             size='md'

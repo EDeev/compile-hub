@@ -24,7 +24,7 @@
 }
 
 .inputLine input {
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-strong);
   outline: none;
   background-color: inherit;
   border-radius: var(--border-radius);

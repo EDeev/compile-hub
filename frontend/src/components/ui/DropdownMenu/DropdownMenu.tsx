@@ -17,6 +17,8 @@ interface MenuItem {
 interface DropdownMenuProps {
   items: MenuItem[]
   trigger?: React.ReactNode
+  /** подпись кнопки-иконки для экранных чтецов */
+  label?: string
   className?: string
   disabled?: boolean
   align?: "left" | "right" | "center"
@@ -29,6 +31,7 @@ interface DropdownMenuProps {
 export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   items,
   trigger,
+  label,
   className = "",
   disabled = false,
   align = "right",
@@ -208,6 +211,9 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
     <>
       <button
         ref={triggerRef}
+        aria-label={label}
+        aria-haspopup='menu'
+        aria-expanded={isOpen}
         className={`${styles.trigger} ${disabled ? styles.disabled : ""} ${className}`}
         onClick={handleToggle}
         disabled={disabled}

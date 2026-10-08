@@ -19,34 +19,54 @@
   background: var(--border-color);
 }
 .button {
-  height: 38px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-strong);
   background: var(--bg-secondary);
   color: var(--text-color);
   font: inherit;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
   transition: var(--transition-normal);
+}
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 .button:disabled {
   opacity: 0.6;
   cursor: default;
 }
-/* фирменные цвета сервисов */
+
+/* Яндекс ID: в тёмной теме — белая кнопка, в светлой — чёрная (оба варианта из брендбука) */
 .yandex {
-  background: #fc3f1d;
-  border-color: #fc3f1d;
-  color: #fff;
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
 }
 .yandex:hover:not(:disabled) {
-  background: #e5381a;
+  background: #f2f2f2;
 }
+:global([data-theme="light"]) .yandex {
+  background: #000000;
+  border-color: #000000;
+  color: #ffffff;
+}
+:global([data-theme="light"]) .yandex:hover:not(:disabled) {
+  background: #222222;
+}
+
+/* VK ID: фирменный синий, чуть темнее #0077FF — белый текст 5.3:1 */
 .vk {
-  background: #0077ff;
-  border-color: #0077ff;
-  color: #fff;
+  background: #0066dd;
+  border-color: #0066dd;
+  color: #ffffff;
 }
 .vk:hover:not(:disabled) {
-  background: #006be6;
+  background: #005bc4;
 }

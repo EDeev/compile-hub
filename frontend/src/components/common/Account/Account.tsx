@@ -31,6 +31,7 @@ export const Account = () => {
     <div className={styles.account}>
       <span className={styles.username}>{username}</span>
       <DropdownMenu
+        label={t("account.menu")}
         items={items}
         trigger={<HiOutlineUserCircle size={35} />}
         className={styles.menu}

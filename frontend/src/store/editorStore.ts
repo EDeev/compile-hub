@@ -21,7 +21,7 @@ export const setConsoleSink = (value: ConsoleSink | null) => {
 }
 
 const RED = "\x1b[31m"
-const DIM = "\x1b[2m"
+const DIM = "\x1b[90m" // ярко-чёрный из палитры консоли — читаемый серый (≥ 4.5:1)
 const RESET = "\x1b[0m"
 // xterm переводит строку только по \r\n
 const crlf = (text: string) => text.replace(/\r?\n/g, "\r\n")

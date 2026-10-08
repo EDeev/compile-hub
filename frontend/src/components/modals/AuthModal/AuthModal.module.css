@@ -8,7 +8,7 @@
   gap: var(--spacing-lg);
 }
 
-.content h3 {
+.content h2 {
   font-weight: 400;
   user-select: none;
 }

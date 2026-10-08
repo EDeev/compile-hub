@@ -28,4 +28,4 @@ const BY_EXTENSION: Record<string, string> = {
 
 /** Иконка файла по расширению. */
 export const fileIcon = (ext: string) =>
-  BY_EXTENSION[ext] ? createElement("img", { src: BY_EXTENSION[ext] }) : null
+  BY_EXTENSION[ext] ? createElement("img", { src: BY_EXTENSION[ext], alt: "" }) : null

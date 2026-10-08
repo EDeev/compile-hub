@@ -99,8 +99,16 @@ export const AuthService = {
 
   async register(username: string, email: string, password: string) {
     const uiLanguage = useLanguageStore.getState().language
+    const theme = useThemeStore.getState().theme
     const body = { username, email, password, uiLanguage }
-    await signIn(await api<AuthResponse>("/auth/register", { method: "POST", body }))
+    const response = await api<AuthResponse>("/auth/register", { method: "POST", body })
+    // выбранная до регистрации тема остаётся и сохраняется в аккаунте
+    if (response.user.settings.theme !== theme) {
+      response.user.settings.theme = theme
+      setAccessToken(response.accessToken)
+      await api("/me/settings", { method: "PATCH", body: { theme } }).catch(() => {})
+    }
+    await signIn(response)
   },
 
   async logout() {

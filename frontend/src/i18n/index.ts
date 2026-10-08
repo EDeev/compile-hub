@@ -45,6 +45,12 @@ const ru = {
   "validation.nameTaken": "Такое имя уже есть",
 
   "files.search": "Поиск файлов...",
+  "files.back": "Назад",
+  "files.hide": "Скрыть файлы",
+  "files.show": "Показать файлы",
+  "files.actions": "Действия с «{name}»",
+  "account.menu": "Меню аккаунта",
+  "editor.codeLabel": "Код программы",
   "files.home": "Главная",
   "files.unknownFolder": "Неизвестная папка",
   "files.moveHome": "В корень",
@@ -149,6 +155,8 @@ const ru = {
 
   "oauth.or": "или",
   "oauth.loginWith": "Войти через {name}",
+  "oauth.button.yandex": "Войти с Яндекс ID",
+  "oauth.button.vk": "Войти с VK ID",
   "oauth.title": "Вход через сервисы",
   "oauth.link": "Привязать",
   "oauth.unlink": "Отвязать",
@@ -246,6 +254,12 @@ const en: Record<MessageKey, string> = {
   "validation.nameTaken": "This name is already taken",
 
   "files.search": "Search files...",
+  "files.back": "Back",
+  "files.hide": "Hide files",
+  "files.show": "Show files",
+  "files.actions": 'Actions for "{name}"',
+  "account.menu": "Account menu",
+  "editor.codeLabel": "Program code",
   "files.home": "Home",
   "files.unknownFolder": "Unknown folder",
   "files.moveHome": "Move to home",
@@ -349,6 +363,8 @@ const en: Record<MessageKey, string> = {
 
   "oauth.or": "or",
   "oauth.loginWith": "Continue with {name}",
+  "oauth.button.yandex": "Sign in with Yandex ID",
+  "oauth.button.vk": "Sign in with VK ID",
   "oauth.title": "Sign-in services",
   "oauth.link": "Link",
   "oauth.unlink": "Unlink",

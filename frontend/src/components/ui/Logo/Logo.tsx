@@ -14,8 +14,8 @@ export const Logo: React.FC<LogoProps> = ({
   const logoClasses = [styles.logo, styles[variant]].join(" ").trim()
 
   return (
-    <div className={logoClasses} {...props} tabIndex={1}>
-      <img src={logoImage} alt='logo' />
+    <div className={logoClasses} {...props}>
+      <img src={logoImage} alt='CompileHub' />
       <span>CompileHub</span>
     </div>
   )

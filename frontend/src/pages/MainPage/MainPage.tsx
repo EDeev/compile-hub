@@ -8,6 +8,7 @@ export default function MainPage() {
   const userId = useUserStore((s) => s.currentUser.id)
   return (
     <main className={styles.main}>
+      <h1 className='visually-hidden'>CompileHub — онлайн-компилятор</h1>
       <Filebar key={userId} />
       <Editor />
     </main>

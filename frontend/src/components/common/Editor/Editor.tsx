@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import CodeMirror from "@uiw/react-codemirror"
+import CodeMirror, { EditorView } from "@uiw/react-codemirror"
 import { javascript, javascriptLanguage } from "@codemirror/lang-javascript"
 import { python, pythonLanguage } from "@codemirror/lang-python"
 import { javaLanguage } from "@codemirror/lang-java"
@@ -151,7 +151,12 @@ export const Editor = () => {
         <CodeMirror
           value={code}
           height={editorHeight}
-          extensions={langExtension(ext, autocomplete)}
+          extensions={[
+            ...langExtension(ext, autocomplete),
+            EditorView.contentAttributes.of({
+              "aria-label": t("editor.codeLabel")
+            })
+          ]}
           theme={atomone}
           onChange={setCode}
           style={{ fontSize }}

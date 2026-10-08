@@ -109,6 +109,7 @@ export const Filebar = () => {
                   onClick={handleBackClick}
                   disabled={navigationHistory.length === 0}
                   className={styles.backButton}
+                  aria-label={t("files.back")}
                 >
                   <IoArrowBack size={20} />
                 </button>
@@ -193,6 +194,7 @@ export const Filebar = () => {
         {!isMobile && (
           <button
             className={styles.openMenuButton}
+            aria-label={t(isFilebarOpen ? "files.hide" : "files.show")}
             onClick={() => setFilebarOpen(!isFilebarOpen)}
           >
             {isFilebarOpen ? (

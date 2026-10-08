@@ -1,17 +1,24 @@
 :root {
-  --primary: #3e9e11;
-  --primary-hover: #4bc014;
+  /* палитра проверена по WCAG 2.1 AA (axe-core): текст ≥ 4.5:1, элементы управления ≥ 3:1 */
+  --primary: #2b7f0b; /* фон основных кнопок (белый текст — 5.1:1) */
+  --primary-hover: #24730b;
+  --on-primary: #ffffff;
+  --accent: #4bb51a; /* зелёный текст и акценты на тёмном фоне (6.9:1) */
   --bg-color: #13151b;
   --bg-secondary: #1a1d24;
-  --bg-error: #ff2020;
+  --bg-elevated: #20242d;
+  --bg-error: #d93036;
   --text-color: #eeeeee;
-  --text-secondary: rgb(117, 117, 117);
-  --text-error: #ff2020;
-  --text-success: #3e9e11;
-  --menu-item-hover: rgba(74, 192, 20, 0.3);
-  --menu-item-hover-danger: rgba(255, 32, 32, 0.3);
-  --border-color: #434449;
-  --border-color-error: #ff2020;
+  --text-secondary: #a1a7b0;
+  --text-disabled: #6b7280;
+  --text-error: #ff6b6b;
+  --text-success: #4bb51a;
+  --menu-item-hover: rgba(75, 181, 26, 0.18);
+  --menu-item-hover-danger: rgba(255, 107, 107, 0.18);
+  --border-color: #3b3f4a;
+  --border-strong: #6b7180; /* рамки полей ввода и кнопок (3:1) */
+  --border-color-error: #ff6b6b;
+  --focus-ring: 0 0 0 2px var(--bg-color), 0 0 0 4px var(--accent);
   --border-radius: 8px;
 
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 6px rgba(0, 0, 0, 0.06);
@@ -36,8 +43,22 @@
 }
 
 [data-theme="light"] {
-  --bg-color: rgb(255, 255, 255);
-  --bg-secondary: rgb(240, 240, 240);
-  --text-color: rgba(17, 24, 39, 1);
-  --border-color: rgb(199, 197, 197);
+  --primary: #2b7f0b;
+  --primary-hover: #24730b;
+  --accent: #24730b; /* 6.0:1 на белом */
+  --bg-color: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --bg-elevated: #ffffff;
+  --bg-error: #c92a2a;
+  --text-color: #111827;
+  --text-secondary: #4b5563;
+  --text-disabled: #9ca3af;
+  --text-error: #c92a2a;
+  --text-success: #24730b;
+  --menu-item-hover: rgba(36, 115, 11, 0.12);
+  --menu-item-hover-danger: rgba(201, 42, 42, 0.1);
+  --border-color: #e5e7eb;
+  --border-strong: #8a909b;
+  --border-color-error: #c92a2a;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 6px 16px rgba(0, 0, 0, 0.08);
 }

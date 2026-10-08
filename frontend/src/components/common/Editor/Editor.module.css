@@ -21,7 +21,7 @@
   font-size: calc(var(--font-size-lg) + 14px);
 }
 .helloMessage > h1 > span {
-  color: var(--primary);
+  color: var(--accent);
 }
 .helloMessage > p {
   font-size: calc(var(--font-size-lg) + 2px);
@@ -88,7 +88,7 @@
 }
 .loadSpinner {
   animation: spin 0.5s linear infinite;
-  color: var(--primary);
+  color: var(--accent);
 }
 
 @keyframes spin {
@@ -132,7 +132,7 @@ resizeHandle:active {
   padding: 0;
 }
 .modified {
-  color: var(--primary);
+  color: var(--accent);
 }
 .status {
   display: flex;
@@ -170,7 +170,7 @@ resizeHandle:active {
   outline: none;
 }
 .stdin:focus {
-  border-color: var(--primary);
+  border-color: var(--accent);
 }
 .resizeHandleHorizontal {
   background: var(--border-color);
@@ -237,7 +237,7 @@ resizeHandle:active {
   }
   .activeTab {
     color: var(--text-color);
-    border-bottom-color: var(--primary);
+    border-bottom-color: var(--accent);
   }
   .mobileStatus {
     display: flex;

@@ -93,3 +93,31 @@
   border-radius: var(--border-radius);
   padding: var(--spacing-sm);
 }
+
+/* просторнее и без переполнения: длинные имена и почты переносятся, строки не сжимаются */
+.mainContainer {
+  gap: var(--spacing-md);
+}
+.optionContainer {
+  min-height: 52px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+.optionContainer > span {
+  white-space: normal;
+}
+.profileContainer,
+.passwordContainer {
+  padding: var(--spacing-md);
+}
+.profileInfo {
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+.profileInfo > * {
+  overflow-wrap: anywhere;
+}
+.passwordContainer > span {
+  font-weight: 600;
+}
