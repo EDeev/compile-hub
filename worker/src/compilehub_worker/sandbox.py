@@ -35,7 +35,7 @@ SECCOMP = (
     "syslog, vhangup, iopl, ioperm } DEFAULT ALLOW"
 )
 
-RO_MOUNTS = ("/usr",)
+RO_MOUNTS = ("/usr", "/etc/ld.so.cache")  # тулчейны в /usr/local — их библиотеки находятся по кэшу ld.so
 SYMLINKS = (("/usr/bin", "/bin"), ("/usr/lib", "/lib"), ("/usr/lib64", "/lib64"), ("/usr/sbin", "/sbin"))
 RUSAGE = "/usr/local/bin/ch-rusage"  # см. worker/rusage.c
 DEVICES = ("/dev/null", "/dev/zero", "/dev/urandom", "/dev/random")

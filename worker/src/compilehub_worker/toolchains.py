@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 
-JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
+JAVA_HOME = "/opt/java/openjdk"  # Eclipse Temurin
 PCH_DIR = "/usr/local/include/pch"  # предкомпилированный bits/stdc++.h — тот же набор флагов, что у g++ ниже
 GO_CACHE = "/var/cache/gobuild"  # кэш сборки стандартной библиотеки Go: доступен на запись только компиляции
 
@@ -23,7 +23,7 @@ class Toolchain:
     compile_wall_ms: int = 15_000  # Go и Java компилируются заметно дольше
 
 
-CXXFLAGS = ("-std=c++20", "-O2", "-pipe")
+CXXFLAGS = ("-std=c++23", "-O2", "-pipe")
 
 TOOLCHAINS: dict[str, Toolchain] = {
     t.id: t
@@ -32,23 +32,23 @@ TOOLCHAINS: dict[str, Toolchain] = {
             "cpp",
             "main.cpp",
             run=("./main",),
-            compile=("/usr/bin/g++", *CXXFLAGS, f"-I{PCH_DIR}", "-o", "main", "main.cpp", "-lm"),
+            compile=("/usr/local/bin/g++", *CXXFLAGS, f"-I{PCH_DIR}", "-o", "main", "main.cpp", "-lm"),
             artifacts=("main",),
-            version=("/usr/bin/g++", "-dumpfullversion"),
+            version=("/usr/local/bin/g++", "-dumpfullversion"),
         ),
         Toolchain(
             "c",
             "main.c",
             run=("./main",),
-            compile=("/usr/bin/gcc", "-std=c17", "-O2", "-pipe", "-o", "main", "main.c", "-lm"),
+            compile=("/usr/local/bin/gcc", "-std=c23", "-O2", "-pipe", "-o", "main", "main.c", "-lm"),
             artifacts=("main",),
-            version=("/usr/bin/gcc", "-dumpfullversion"),
+            version=("/usr/local/bin/gcc", "-dumpfullversion"),
         ),
         Toolchain(
             "python",
             "main.py",
-            run=("/usr/bin/python3", "-I", "-B", "-u", "main.py"),
-            version=("/usr/bin/python3", "-c", "import platform; print(platform.python_version())"),
+            run=("/usr/local/bin/python3", "-I", "-B", "-u", "main.py"),
+            version=("/usr/local/bin/python3", "-c", "import platform; print(platform.python_version())"),
         ),
         Toolchain(
             "javascript",
@@ -82,7 +82,7 @@ TOOLCHAINS: dict[str, Toolchain] = {
             compile=(f"{JAVA_HOME}/bin/javac", "-J-XX:+UseSerialGC", "-J-Xss64m", "-encoding", "UTF-8", "Main.java"),
             artifacts=("*.class",),
             version=(f"{JAVA_HOME}/bin/java", "-XshowSettings:properties", "-version"),
-            extra_mounts_ro=("/etc/java-21-openjdk",),
+            extra_mounts_ro=("/opt/java",),
             memory_args=True,
             compile_wall_ms=30_000,
         ),

@@ -1,27 +1,42 @@
-# Воркер CompileHub: nsjail + тулчейны C/C++, Python, Node.js, Go, Java + оркестратор на Python.
+# Воркер CompileHub: nsjail + тулчейны C/C++, Python, Node.js, Go, Java (последние версии) + оркестратор на Python.
 # Сборка из корня репозитория: docker build -f worker/Dockerfile -t compile-hub-worker .
 # Запуск: --privileged --cgroupns=private (nsjail и cgroup v2 задач), см. deploy/docker-compose.yml.
 
-FROM ubuntu:24.04 AS nsjail
+# Тулчейны — последние стабильные версии из официальных образов на одной базе (Debian trixie):
+# GCC 16 (C, C++), Python 3.14, Node.js 26, Go 1.27, Java 27 (Eclipse Temurin).
+ARG GCC_VERSION=16
+ARG PYTHON_VERSION=3.14
+ARG NODE_VERSION=26
+ARG GO_VERSION=1.27
+ARG JAVA_VERSION=27
+
+FROM gcc:${GCC_VERSION}-trixie AS nsjail
 ARG NSJAIL_VERSION=3.4
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        autoconf bison ca-certificates flex g++ gcc git libnl-route-3-dev libprotobuf-dev libtool make \
-        pkg-config protobuf-compiler \
+        bison flex libnl-route-3-dev libprotobuf-dev pkg-config protobuf-compiler \
     && git clone --depth 1 --branch "${NSJAIL_VERSION}" https://github.com/google/nsjail /src \
     && make -C /src -j"$(nproc)" \
     && cp /src/nsjail /nsjail
 
-FROM node:22-bookworm-slim AS node
-FROM golang:1.23-bookworm AS go
+FROM python:${PYTHON_VERSION}-trixie AS python
+FROM node:${NODE_VERSION}-trixie AS node
+FROM golang:${GO_VERSION}-trixie AS go
+FROM eclipse-temurin:${JAVA_VERSION}-jdk AS java
 
-FROM ubuntu:24.04 AS runtime
+FROM gcc:${GCC_VERSION}-trixie AS runtime
+ARG PYTHON_VERSION=3.14
 ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 PYTHONDONTWRITEBYTECODE=1
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        ca-certificates g++ gcc libc6-dev libnl-route-3-200 libprotobuf32t64 openjdk-21-jdk-headless python3 \
+RUN apt-get update && apt-get install -y --no-install-recommends libnl-route-3-200 libprotobuf32t64 \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=nsjail /nsjail /usr/local/bin/nsjail
+# Python: интерпретатор, стандартная библиотека и libpython (база та же — системные библиотеки совпадают)
+COPY --from=python /usr/local/bin/python${PYTHON_VERSION} /usr/local/bin/
+COPY --from=python /usr/local/lib/python${PYTHON_VERSION} /usr/local/lib/python${PYTHON_VERSION}
+COPY --from=python /usr/local/lib/libpython3* /usr/local/lib/
+RUN ln -sf python${PYTHON_VERSION} /usr/local/bin/python3 && ldconfig
 COPY --from=node /usr/local/bin/node /usr/local/bin/node
 COPY --from=go /usr/local/go /usr/local/go
+COPY --from=java /opt/java/openjdk /opt/java/openjdk
 
 # помощник замера: пиковый RSS и CPU-время самой программы (см. worker/rusage.c)
 COPY worker/rusage.c /tmp/rusage.c
@@ -29,7 +44,7 @@ RUN gcc -O2 -static -o /usr/local/bin/ch-rusage /tmp/rusage.c && rm /tmp/rusage.
 
 # предкомпилированный bits/stdc++.h — флаги совпадают с компиляцией C++ в toolchains.py
 RUN mkdir -p /usr/local/include/pch/bits \
-    && g++ -std=c++20 -O2 -pipe -x c++-header "$(echo /usr/include/x86_64-linux-gnu/c++/*/bits/stdc++.h)" \
+    && g++ -std=c++23 -O2 -pipe -x c++-header "$(echo /usr/local/include/c++/*/x86_64-linux-gnu/bits/stdc++.h)" \
         -o /usr/local/include/pch/bits/stdc++.h.gch
 
 # кэш сборки стандартной библиотеки Go: без него первая сборка компилирует std заново
@@ -44,7 +59,7 @@ COPY protocol protocol
 COPY worker worker
 COPY api/pyproject.toml api/pyproject.toml
 RUN mkdir -p api/src/compilehub_api && touch api/src/compilehub_api/__init__.py \
-    && UV_PYTHON_DOWNLOADS=never uv sync --locked --no-dev --package compilehub-worker --python /usr/bin/python3 \
+    && UV_PYTHON_DOWNLOADS=never uv sync --locked --no-dev --package compilehub-worker --python /usr/local/bin/python3 \
     && rm -rf /root/.cache
 
 ENV PATH=/app/.venv/bin:$PATH
