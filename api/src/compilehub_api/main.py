@@ -11,8 +11,9 @@ from .config import Settings, get_settings
 from .db import make_engine, make_sessionmaker
 from .mail import Mailer
 from .redis import make_redis
-from .routers import auth, files, health, me
+from .routers import auth, files, health, me, runs
 from .services import maintenance
+from .services.runs import collect_results
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -23,7 +24,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         engine = make_engine(settings.database_url)
         app.state.sessionmaker = make_sessionmaker(engine)
         app.state.redis = make_redis(settings.redis_url)
-        tasks = []
+        tasks = [asyncio.create_task(collect_results(app.state.sessionmaker, app.state.redis))]
         if settings.maintenance:
             tasks.append(asyncio.create_task(maintenance.loop(app.state.sessionmaker, app.state.redis)))
         yield
@@ -44,7 +45,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.mailer = Mailer(settings)
     errors.install(app)
-    for module in (health, auth, me, files):
+    for module in (health, auth, me, files, runs):
         app.include_router(module.router)
     return app
 

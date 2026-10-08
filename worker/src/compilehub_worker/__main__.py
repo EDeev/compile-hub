@@ -75,10 +75,13 @@ class Worker:
         self.versions = await asyncio.to_thread(detect_versions, self.config.languages)
         log.info("воркер %s: слотов %d, языки %s", self.config.name, self.config.slots, self.versions)
         self.runner = Runner(self.config, self.redis, self.cgroups, self.versions)
-        with contextlib.suppress(ResponseError):  # BUSYGROUP — группа уже есть
-            await self.redis.xgroup_create(QUEUE, WORKERS_GROUP, id="0", mkstream=True)
+        await self.ensure_group()
         metrics.SLOTS.set(self.config.slots)
         start_http_server(self.config.metrics_port)
+
+    async def ensure_group(self) -> None:
+        with contextlib.suppress(ResponseError):  # BUSYGROUP — группа уже есть
+            await self.redis.xgroup_create(QUEUE, WORKERS_GROUP, id="0", mkstream=True)
 
     def info(self) -> WorkerInfo:
         return WorkerInfo(
@@ -152,6 +155,13 @@ class Worker:
                 response = await self.redis.xreadgroup(
                     WORKERS_GROUP, self.config.name, {QUEUE: ">"}, count=1, block=2000
                 )
+            except ResponseError as e:
+                if "NOGROUP" in str(e):  # Redis перезапустился без данных
+                    await self.ensure_group()
+                else:
+                    log.exception("чтение очереди не удалось")
+                    await asyncio.sleep(2)
+                continue
             except Exception:  # noqa: BLE001
                 log.exception("чтение очереди не удалось")
                 await asyncio.sleep(2)

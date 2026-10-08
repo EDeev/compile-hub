@@ -220,3 +220,57 @@ class ImportIn(Camel):
 class ImportOut(Camel):
     items: list[ItemOut]
     skipped: int  # не поместились в лимиты или не прошли проверку
+
+
+# ---------------------------------------------------------------- запуски
+
+MAX_STDIN = 256 * 1024
+
+
+class LanguageOut(Camel):
+    id: str
+    name: str
+    extensions: list[str]
+    template: str
+    version: str | None
+    enabled: bool
+
+
+class RunIn(Camel):
+    language: str
+    code: str
+    stdin: str = Field("", max_length=MAX_STDIN)
+    file_id: int | None = None
+    interactive: bool = False
+
+
+class RunCreated(Camel):
+    run_id: str
+    stream_token: str
+    position: int
+
+
+class RunOut(Camel):
+    id: str
+    file_id: int | None
+    language: str
+    interactive: bool
+    status: Literal["queued", "finished"]
+    verdict: str | None
+    exit_code: int | None
+    signal: str | None
+    time_ms: int | None
+    memory_kb: int | None
+    output: str | None
+    created_at: str
+    finished_at: str | None
+
+
+class RunBrief(Camel):
+    id: str
+    file_id: int | None
+    language: str
+    verdict: str | None
+    time_ms: int | None
+    memory_kb: int | None
+    created_at: str

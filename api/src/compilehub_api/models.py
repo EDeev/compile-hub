@@ -130,8 +130,10 @@ class Run(Base):
     language: Mapped[str] = mapped_column(Text)
     code: Mapped[str] = mapped_column(Text)
     stdin: Mapped[str] = mapped_column(Text, server_default="")
+    interactive: Mapped[bool] = mapped_column(server_default="false")
     verdict: Mapped[str | None] = mapped_column(Text)
     exit_code: Mapped[int | None]
+    signal: Mapped[str | None] = mapped_column(Text)
     time_ms: Mapped[int | None]
     memory_kb: Mapped[int | None]
     output: Mapped[str | None] = mapped_column(Text)
