@@ -34,11 +34,11 @@ body {
   width: 100%;
 }
 
-/* code-mirror editor theme overrides */
-.cm-editor {
+/* code-mirror: фон под тёмную тему сайта; в светлой — как есть у GitHub Light */
+:root:not([data-theme="light"]) .cm-editor {
   background: var(--bg-secondary);
 }
-.cm-gutters {
+:root:not([data-theme="light"]) .cm-gutters {
   background-color: var(--bg-secondary) !important;
 }
 

@@ -6,6 +6,8 @@ import { javaLanguage } from "@codemirror/lang-java"
 import { go, goLanguage } from "@codemirror/lang-go"
 import { cppLanguage } from "@codemirror/lang-cpp"
 import { atomone } from "@uiw/codemirror-theme-atomone"
+import { githubLight } from "@uiw/codemirror-theme-github"
+import { useThemeStore } from "@/store/themeStore"
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
 import { CgSpinner } from "react-icons/cg"
 import styles from "./Editor.module.css"
@@ -66,6 +68,7 @@ export const Editor = () => {
   } = useEditorState()
   const { fontSize, autocomplete } = useEditorSettings()
   const username = useUserStore((s) => s.currentUser.username)
+  const siteTheme = useThemeStore((s) => s.theme)
   const isMobile = useIsMobile()
   const { editorTab, setEditorTab, setFilesOpen } = useUiStore()
 
@@ -157,7 +160,7 @@ export const Editor = () => {
               "aria-label": t("editor.codeLabel")
             })
           ]}
-          theme={atomone}
+          theme={siteTheme === "light" ? githubLight : atomone}
           onChange={setCode}
           style={{ fontSize }}
         />

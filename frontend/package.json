@@ -19,6 +19,7 @@
     "@codemirror/lang-python": "^6.2.1",
     "@fontsource/inter": "^5.2.6",
     "@uiw/codemirror-theme-atomone": "^4.23.14",
+    "@uiw/codemirror-theme-github": "^4.25.12",
     "@uiw/react-codemirror": "^4.23.14",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
