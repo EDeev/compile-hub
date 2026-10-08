@@ -14,7 +14,6 @@ import styles from "./Editor.module.css"
 import { Button } from "@/components/ui/Button"
 import { Console } from "@/components/common/Console"
 import { useEditorSettings, useEditorState } from "@/store/editorStore"
-import { useUserStore } from "@/store/userStore"
 import { extensionOf } from "@/store/languagesStore"
 import { fileIcon } from "@/utils/icons"
 import { useT } from "@/i18n"
@@ -67,10 +66,9 @@ export const Editor = () => {
     stop
   } = useEditorState()
   const { fontSize, autocomplete } = useEditorSettings()
-  const username = useUserStore((s) => s.currentUser.username)
   const siteTheme = useThemeStore((s) => s.theme)
   const isMobile = useIsMobile()
-  const { editorTab, setEditorTab, setFilesOpen } = useUiStore()
+  const { editorTab, setEditorTab } = useUiStore()
 
   // высота редактора — по панели (CodeMirror нужна явная высота)
   useEffect(() => {
@@ -98,26 +96,7 @@ export const Editor = () => {
     return () => window.removeEventListener("keydown", onKey)
   }, [save, run])
 
-  if (!currentFile) {
-    return (
-      <div ref={containerRef} className={styles.helloMessage}>
-        <h1>
-          {t("editor.greeting", { name: "" })}
-          <span>{username}</span>
-        </h1>
-        <p>{t(isMobile ? "editor.hintMobile" : "editor.hint")}</p>
-        {isMobile && (
-          <Button
-            variant='secondary'
-            className={styles.openFiles}
-            onClick={() => setFilesOpen(true)}
-          >
-            {t("editor.openFiles")}
-          </Button>
-        )}
-      </div>
-    )
-  }
+  if (!currentFile) return null // приветствие — в Welcome
 
   const ext = extensionOf(currentFile.name)
   const isModified = code !== savedCode || stdin !== savedStdin
