@@ -7,8 +7,9 @@ from fastapi import FastAPI
 from . import errors
 from .config import Settings, get_settings
 from .db import make_engine, make_sessionmaker
+from .mail import Mailer
 from .redis import make_redis
-from .routers import health
+from .routers import auth, health, me
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -31,8 +32,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = settings
+    app.state.mailer = Mailer(settings)
     errors.install(app)
-    app.include_router(health.router)
+    for module in (health, auth, me):
+        app.include_router(module.router)
     return app
 
 
