@@ -1,5 +1,6 @@
-# CompileHub на dorm: /opt/compilehub (или /root/compilehub — snap docker не видит /opt).
-# Postgres — кластер хоста, база compilehub; секреты — в .env рядом (см. env.example).
+# CompileHub на dorm: /root/compilehub (snap docker не видит /opt).
+# Postgres — кластер хоста, база compilehub (pg_hba: 172.30.0.0/24); секреты — в .env рядом (см. env.example).
+# Образы — из GHCR; пока репозиторий не опубликован, собираются на dorm (REGISTRY= в .env — локальные теги).
 name: compilehub
 
 services:
@@ -12,7 +13,7 @@ services:
     restart: unless-stopped
 
   api:
-    image: ghcr.io/edeev/compile-hub-api:${TAG:-latest}
+    image: ${REGISTRY-ghcr.io/edeev/}compile-hub-api:${TAG:-latest}
     env_file: .env
     environment:
       CH_ENV: prod
@@ -26,7 +27,7 @@ services:
     restart: unless-stopped
 
   worker:
-    image: ghcr.io/edeev/compile-hub-worker:${TAG:-latest}
+    image: ${REGISTRY-ghcr.io/edeev/}compile-hub-worker:${TAG:-latest}
     privileged: true  # nsjail: namespaces и cgroup v2 задач
     cgroup: private
     cpus: 1  # dorm перегревается; на новом сервере — больше и WORKER_SLOTS по числу ядер
@@ -35,7 +36,7 @@ services:
       WORKER_REDIS_URL: redis://worker:${REDIS_WORKER_PASSWORD}@redis:6379/0
       WORKER_NAME: dorm-1
       WORKER_SLOTS: "1"
-      WORKER_LANGUAGES: cpp,c,python,javascript
+      WORKER_LANGUAGES: cpp,c,python,javascript,go,java
     volumes:
       - worker-cache:/var/cache/compilehub
     ports:
@@ -45,7 +46,7 @@ services:
     restart: unless-stopped
 
   web:
-    image: ghcr.io/edeev/compile-hub-web:${TAG:-latest}
+    image: ${REGISTRY-ghcr.io/edeev/}compile-hub-web:${TAG:-latest}
     ports:
       - "127.0.0.1:8096:80"
     depends_on: [api]
@@ -54,3 +55,9 @@ services:
 
 volumes:
   worker-cache:
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24  # разрешена в pg_hba и ufw для доступа к Postgres хоста
