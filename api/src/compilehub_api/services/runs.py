@@ -51,11 +51,14 @@ async def ensure_group(redis: Redis) -> None:
 
 async def collect_results(sessionmaker: async_sessionmaker[AsyncSession], redis: Redis, on_result=None) -> None:
     """Фоновая задача API: итоги из runs:results → таблица runs. Группа общая для всех реплик API."""
-    await ensure_group(redis)
     claimed_at = 0.0
+    group_ready = False
     loop = asyncio.get_running_loop()
     while True:
         try:
+            if not group_ready:  # Redis может быть ещё недоступен при старте — пробуем в цикле
+                await ensure_group(redis)
+                group_ready = True
             batch = []
             if loop.time() - claimed_at > 30:  # итоги, которые взяла и не дописала упавшая реплика
                 _, batch, _ = await redis.xautoclaim(
