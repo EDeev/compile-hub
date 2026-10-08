@@ -45,7 +45,7 @@ from ..services.runs import parse_uuid, queue_length
 
 router = APIRouter(prefix="/api", tags=["runs"])
 
-BATCH = Limits(wall_ms=10_000, cpu_ms=3_000, memory_mb=256)  # стена с запасом: dorm бывает занят, CPU-лимит — 3 с
+BATCH = Limits(wall_ms=10_000, cpu_ms=3_000, memory_mb=256)  # стена с запасом на занятый сервер; CPU — 3 с
 INTERACTIVE = Limits(wall_ms=60_000, cpu_ms=5_000, memory_mb=256, idle_ms=30_000)
 STREAM_TTL = 600  # с: ключи ввода и отмены
 MAX_STDIN_MESSAGE = 64 * 1024
@@ -109,7 +109,8 @@ async def create_run(
     if user:
         scope = f"user:{user.id}"
     else:
-        # гость — по анонимной cookie (IP за SPB неизвестен); смена cookie упирается в общий потолок гостей
+        # гость — по анонимной cookie (IP за прокси может быть неизвестен);
+        # смена cookie упирается в общий потолок гостей
         guest = request.cookies.get(GUEST_COOKIE, "")
         if not GUEST_RE.fullmatch(guest):
             guest = uuid6.uuid7().hex

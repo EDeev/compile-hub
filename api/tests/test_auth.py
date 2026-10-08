@@ -246,7 +246,7 @@ async def test_login_rate_limit_by_public_ip(client):
     ]
     # 30 в минуту с адреса (ведро пополняется, пока идут попытки, — поэтому с запасом)
     assert 429 in statuses and statuses.index(429) <= 33
-    # без настоящего IP (за SPB — 127.0.0.1) — общее ведро, его этот адрес не исчерпал
+    # без настоящего IP (за прокси — 127.0.0.1) — общее ведро, его этот адрес не исчерпал
     assert (await client.post("/api/auth/login", json={"login": "u99", "password": "y"})).status_code == 401
 
 

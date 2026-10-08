@@ -1,4 +1,4 @@
-# Правила для /etc/prometheus/rules/alerts.yml на SPB (группа compilehub).
+# Правила алертов Prometheus для CompileHub (подключить в rule_files).
 groups:
   - name: compilehub
     rules:

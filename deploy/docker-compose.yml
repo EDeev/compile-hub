@@ -1,6 +1,6 @@
-# CompileHub на dorm: /root/compilehub (snap docker не видит /opt).
-# Postgres — кластер хоста, база compilehub (pg_hba: 172.30.0.0/24); секреты — в .env рядом (см. env.example).
-# Образы — из GHCR; пока репозиторий не опубликован, собираются на dorm (REGISTRY= в .env — локальные теги).
+# CompileHub на одном сервере: api, worker, redis, web. PostgreSQL — на хосте (база compilehub), доступ из подсети
+# compose (172.30.0.0/24 — разрешить в pg_hba). Секреты — в .env рядом (см. env.example), ACL Redis — users.acl.
+# Образы — из GHCR; REGISTRY=docker.io/library/ в .env — локально собранные образы.
 name: compilehub
 
 services:
@@ -30,11 +30,11 @@ services:
     image: ${REGISTRY-ghcr.io/edeev/}compile-hub-worker:${TAG:-latest}
     privileged: true  # nsjail: namespaces и cgroup v2 задач
     cgroup: private
-    cpus: 1  # dorm перегревается; на новом сервере — больше и WORKER_SLOTS по числу ядер
+    cpus: 1  # одно ядро на слот; на мощном сервере — больше и WORKER_SLOTS по числу ядер
     mem_limit: 1536m
     environment:
       WORKER_REDIS_URL: redis://worker:${REDIS_WORKER_PASSWORD}@redis:6379/0
-      WORKER_NAME: dorm-1
+      WORKER_NAME: worker-1
       WORKER_SLOTS: "1"
       WORKER_LANGUAGES: cpp,c,python,javascript,go,java
     volumes:
@@ -60,4 +60,4 @@ networks:
   default:
     ipam:
       config:
-        - subnet: 172.30.0.0/24  # разрешена в pg_hba и ufw для доступа к Postgres хоста
+        - subnet: 172.30.0.0/24  # разрешить в pg_hba и файрволе для доступа к Postgres хоста

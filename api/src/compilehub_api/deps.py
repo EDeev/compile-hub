@@ -29,9 +29,9 @@ AppMailer = Annotated[Mailer, Depends(_mailer)]
 
 
 def client_ip(request: Request) -> str | None:
-    """Публичный IP клиента (заголовок от nginx, иначе адрес соединения) или None, если настоящий адрес
-    неизвестен. За SPB так и есть: SNI-маршрутизатор на 443 отдаёт соединение сайтам с 127.0.0.1 без
-    PROXY protocol — тогда ограничения считаются не по IP (см. ratelimit.hit_ip)."""
+    """Публичный IP клиента (заголовок от обратного прокси, иначе адрес соединения) или None, если настоящий адрес
+    неизвестен — например, за прокси без PROXY protocol все соединения приходят с 127.0.0.1. Тогда ограничения
+    частоты считаются не по IP (см. ratelimit.hit_ip)."""
     raw = request.headers.get(request.app.state.settings.real_ip_header) or (
         request.client.host if request.client else ""
     )
