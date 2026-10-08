@@ -29,7 +29,7 @@ READ = 65536
 
 # системные вызовы, которые в песочнице незачем: отдают EPERM (не убивают — рантаймы иногда пробуют их)
 SECCOMP = (
-    "ERRNO(1) { ptrace, process_vm_readv, process_vm_writev, mount, umount2, pivot_root, chroot, bpf, keyctl, "
+    "ERRNO(1) { ptrace, process_vm_readv, process_vm_writev, mount, umount, pivot_root, chroot, bpf, keyctl, "
     "add_key, request_key, perf_event_open, kexec_load, init_module, finit_module, delete_module, unshare, "
     "setns, swapon, swapoff, reboot, open_by_handle_at, name_to_handle_at, userfaultfd, acct, quotactl, "
     "syslog, vhangup, iopl, ioperm } DEFAULT ALLOW"
