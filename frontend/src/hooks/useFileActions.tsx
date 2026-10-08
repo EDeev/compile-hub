@@ -9,6 +9,7 @@ import { useClickDragStore } from "@/store/clickDragStore"
 import { type FileItem, type Item } from "@/types/fileSystem"
 import { useEditorState } from "@/store/editorStore"
 import { t } from "@/i18n"
+import { useUiStore } from "@/store/uiStore"
 
 export const useFileActions = () => {
   const { cancelMove } = useClickDragStore()
@@ -137,7 +138,11 @@ export const useFileActions = () => {
       if (!name) return
       if (type === "file") {
         const file = await createFile(name, parentFolderId)
-        if (file) await useEditorState.getState().openFile(file)
+        if (file) {
+          useUiStore.getState().setFilesOpen(false)
+          useUiStore.getState().setEditorTab("code")
+          await useEditorState.getState().openFile(file)
+        }
       } else {
         await createFolder(name)
       }

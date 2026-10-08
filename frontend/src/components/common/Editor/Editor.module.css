@@ -180,3 +180,85 @@ resizeHandle:active {
 .resizeHandleHorizontal:hover {
   background: var(--text-color);
 }
+
+.stdinPanel {
+  height: 100%;
+}
+
+/* ---------- телефон: вкладки вместо панелей ---------- */
+.tabs,
+.mobileStatus,
+.mobilePanes {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .editorContainer {
+    padding: 0;
+  }
+  .helloMessage {
+    text-align: center;
+    padding: var(--spacing-xl) var(--spacing-lg);
+  }
+  .openFiles {
+    margin-top: var(--spacing-lg);
+  }
+  .controlPanel {
+    width: 100%;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  .controlPanel > img {
+    width: 24px;
+  }
+  .fileName {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+  }
+  .tab {
+    flex: 1;
+    padding: var(--spacing-sm) 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    cursor: pointer;
+  }
+  .activeTab {
+    color: var(--text-color);
+    border-bottom-color: var(--primary);
+  }
+  .mobileStatus {
+    display: flex;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    max-width: none;
+    font-size: var(--font-size-sm);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .mobilePanes {
+    display: block;
+    position: relative;
+    flex: 1;
+    min-height: 0;
+  }
+  .mobilePane {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+  }
+  .visiblePane {
+    visibility: visible;
+  }
+}

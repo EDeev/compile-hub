@@ -25,3 +25,26 @@
 .themeSwitcher {
   margin-right: var(--spacing-sm);
 }
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+.menuButton {
+  display: flex;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .headerContainer {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  .themeSwitcher {
+    margin-right: 0;
+  }
+}

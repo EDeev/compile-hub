@@ -241,3 +241,25 @@ hr {
     transform: rotate(360deg);
   }
 }
+
+/* телефон: выдвижная панель поверх редактора */
+.mobile {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(85vw, 340px);
+  z-index: 900;
+  transform: translateX(-105%);
+  transition: transform 0.25s ease;
+}
+.mobileOpen {
+  transform: translateX(0);
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
+}
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 899;
+  background: rgba(0, 0, 0, 0.45);
+}

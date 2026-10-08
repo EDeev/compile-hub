@@ -15,7 +15,19 @@ const applySettings = (settings: UserSettings) => {
   useEditorSettings.setState({ fontSize: settings.fontSize, autocomplete: settings.autocomplete })
 }
 
+// признак «был вход»: гостю не нужен запрос refresh при открытии сайта (иначе 401 в консоли браузера)
+const SESSION_FLAG = "ch_session"
+const markSession = (on: boolean) => {
+  try {
+    if (on) localStorage.setItem(SESSION_FLAG, "1")
+    else localStorage.removeItem(SESSION_FLAG)
+  } catch {
+    // localStorage недоступен — просто попробуем refresh в следующий раз
+  }
+}
+
 const signIn = async ({ user, accessToken }: AuthResponse) => {
+  markSession(true)
   setAccessToken(accessToken)
   useUserStore.getState().login(user)
   applySettings(user.settings)
@@ -24,6 +36,7 @@ const signIn = async ({ user, accessToken }: AuthResponse) => {
 }
 
 const signOut = () => {
+  markSession(false)
   setAccessToken(null)
   useUserStore.getState().logout()
   useEditorState.getState().closeFile()
@@ -36,7 +49,7 @@ export const AuthService = {
   /** При запуске: восстановить сессию по refresh-cookie. */
   async restore() {
     try {
-      if (await refreshAccessToken()) {
+      if (localStorage.getItem(SESSION_FLAG) && (await refreshAccessToken())) {
         const user = await api<ApiUser>("/me")
         useUserStore.getState().login(user)
         applySettings(user.settings)

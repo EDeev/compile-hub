@@ -16,6 +16,8 @@ import { useUserStore } from "@/store/userStore"
 import { extensionOf } from "@/store/languagesStore"
 import { fileIcon } from "@/utils/icons"
 import { useT } from "@/i18n"
+import { useIsMobile } from "@/hooks/useIsMobile"
+import { useUiStore } from "@/store/uiStore"
 
 const langExtension = (ext: string, autocomplete: boolean) => {
   switch (ext) {
@@ -64,6 +66,8 @@ export const Editor = () => {
   } = useEditorState()
   const { fontSize, autocomplete } = useEditorSettings()
   const username = useUserStore((s) => s.currentUser.username)
+  const isMobile = useIsMobile()
+  const { editorTab, setEditorTab, setFilesOpen } = useUiStore()
 
   // высота редактора — по панели (CodeMirror нужна явная высота)
   useEffect(() => {
@@ -73,7 +77,7 @@ export const Editor = () => {
     )
     observer.observe(codeRef.current)
     return () => observer.disconnect()
-  }, [currentFile])
+  }, [currentFile, isMobile])
 
   // Ctrl+S — сохранить, Ctrl+Enter — запустить
   useEffect(() => {
@@ -98,7 +102,16 @@ export const Editor = () => {
           {t("editor.greeting", { name: "" })}
           <span>{username}</span>
         </h1>
-        <p>{t("editor.hint")}</p>
+        <p>{t(isMobile ? "editor.hintMobile" : "editor.hint")}</p>
+        {isMobile && (
+          <Button
+            variant='secondary'
+            className={styles.openFiles}
+            onClick={() => setFilesOpen(true)}
+          >
+            {t("editor.openFiles")}
+          </Button>
+        )}
       </div>
     )
   }
@@ -107,11 +120,17 @@ export const Editor = () => {
   const isModified = code !== savedCode || stdin !== savedStdin
   const isActive = ACTIVE.has(status)
 
+  const onRun = () => {
+    if (isMobile) setEditorTab("console") // на телефоне сразу показать консоль
+    run()
+  }
+
   const statusText = () => {
     if (status === "queued")
       return t("editor.queued", { position: position + 1 })
     if (status === "compiling") return t("editor.compiling")
-    if (status === "running") return t("editor.running")
+    if (status === "running")
+      return t(isMobile ? "editor.runningShort" : "editor.running")
     if (status === "finished" && result) {
       const parts = [t(`verdict.${result.verdict}`)]
       if (result.timeMs !== undefined) parts.push(`${result.timeMs} ms`)
@@ -121,6 +140,41 @@ export const Editor = () => {
     }
     return ""
   }
+
+  const codePane = (
+    <div ref={codeRef} className={styles.editorWrapper}>
+      {isLoadingFile ? (
+        <div className={styles.loadSpinnerContainer}>
+          <CgSpinner size={30} className={styles.loadSpinner} />
+        </div>
+      ) : (
+        <CodeMirror
+          value={code}
+          height={editorHeight}
+          extensions={langExtension(ext, autocomplete)}
+          theme={atomone}
+          onChange={setCode}
+          style={{ fontSize }}
+        />
+      )}
+    </div>
+  )
+
+  const inputPane = (
+    <div className={styles.stdinPanel}>
+      <label className={styles.stdinLabel}>{t("editor.stdin")}</label>
+      <textarea
+        className={styles.stdin}
+        value={stdin}
+        spellCheck={false}
+        placeholder={t("editor.stdinPlaceholder")}
+        onChange={(e) => setStdin(e.target.value)}
+        style={{ fontSize }}
+      />
+    </div>
+  )
+
+  const statusClass = `${styles.status} ${result && status === "finished" ? styles[result.verdict === "OK" ? "ok" : "bad"] : ""}`
 
   return (
     <div ref={containerRef} className={styles.editorContainer}>
@@ -141,7 +195,7 @@ export const Editor = () => {
               {t("editor.stop")}
             </Button>
           ) : (
-            <Button onClick={run} disabled={isLoadingFile} title='Ctrl+Enter'>
+            <Button onClick={onRun} disabled={isLoadingFile} title='Ctrl+Enter'>
               {t("editor.run")}
             </Button>
           )}
@@ -153,57 +207,72 @@ export const Editor = () => {
           >
             {t("editor.save")}
           </Button>
-          <span
-            className={`${styles.status} ${result && status === "finished" ? styles[result.verdict === "OK" ? "ok" : "bad"] : ""}`}
-          >
-            {isActive && <CgSpinner className={styles.loadSpinner} />}
-            {statusText()}
-          </span>
+          {!isMobile && (
+            <span className={statusClass}>
+              {isActive && <CgSpinner className={styles.loadSpinner} />}
+              {statusText()}
+            </span>
+          )}
         </div>
-        <PanelGroup direction='horizontal' className={styles.panelGroup}>
-          <Panel defaultSize={55} minSize={30} className={styles.codePanel}>
-            <div ref={codeRef} className={styles.editorWrapper}>
-              {isLoadingFile ? (
-                <div className={styles.loadSpinnerContainer}>
-                  <CgSpinner size={30} className={styles.loadSpinner} />
-                </div>
-              ) : (
-                <CodeMirror
-                  value={code}
-                  height={editorHeight}
-                  extensions={langExtension(ext, autocomplete)}
-                  theme={atomone}
-                  onChange={setCode}
-                  style={{ fontSize }}
-                />
-              )}
+
+        {isMobile ? (
+          <>
+            <div className={styles.tabs}>
+              {(["code", "input", "console"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  className={`${styles.tab} ${editorTab === tab ? styles.activeTab : ""}`}
+                  onClick={() => setEditorTab(tab)}
+                >
+                  {t(`editor.tab.${tab}`)}
+                  {tab === "input" && stdin.trim() !== "" && " •"}
+                </button>
+              ))}
             </div>
-          </Panel>
-          <PanelResizeHandle className={styles.resizeHandle} />
-          <Panel minSize={20} className={styles.outputPanel}>
-            <PanelGroup direction='vertical'>
-              <Panel
-                defaultSize={22}
-                minSize={10}
-                className={styles.stdinPanel}
+            {statusText() && (
+              <div className={`${statusClass} ${styles.mobileStatus}`}>
+                {isActive && <CgSpinner className={styles.loadSpinner} />}
+                {statusText()}
+              </div>
+            )}
+            {/* все вкладки смонтированы (консоль должна получать вывод), видна одна */}
+            <div className={styles.mobilePanes}>
+              <div
+                className={`${styles.mobilePane} ${editorTab === "code" ? styles.visiblePane : ""}`}
               >
-                <label className={styles.stdinLabel}>{t("editor.stdin")}</label>
-                <textarea
-                  className={styles.stdin}
-                  value={stdin}
-                  spellCheck={false}
-                  placeholder={t("editor.stdinPlaceholder")}
-                  onChange={(e) => setStdin(e.target.value)}
-                  style={{ fontSize }}
-                />
-              </Panel>
-              <PanelResizeHandle className={styles.resizeHandleHorizontal} />
-              <Panel minSize={20}>
+                {codePane}
+              </div>
+              <div
+                className={`${styles.mobilePane} ${editorTab === "input" ? styles.visiblePane : ""}`}
+              >
+                {inputPane}
+              </div>
+              <div
+                className={`${styles.mobilePane} ${editorTab === "console" ? styles.visiblePane : ""}`}
+              >
                 <Console />
-              </Panel>
-            </PanelGroup>
-          </Panel>
-        </PanelGroup>
+              </div>
+            </div>
+          </>
+        ) : (
+          <PanelGroup direction='horizontal' className={styles.panelGroup}>
+            <Panel defaultSize={55} minSize={30} className={styles.codePanel}>
+              {codePane}
+            </Panel>
+            <PanelResizeHandle className={styles.resizeHandle} />
+            <Panel minSize={20} className={styles.outputPanel}>
+              <PanelGroup direction='vertical'>
+                <Panel defaultSize={22} minSize={10}>
+                  {inputPane}
+                </Panel>
+                <PanelResizeHandle className={styles.resizeHandleHorizontal} />
+                <Panel minSize={20}>
+                  <Console />
+                </Panel>
+              </PanelGroup>
+            </Panel>
+          </PanelGroup>
+        )}
       </div>
     </div>
   )

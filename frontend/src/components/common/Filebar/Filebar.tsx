@@ -18,6 +18,8 @@ import { useFileSystemStore } from "@/store/fileSystemStore"
 import { useEditorState } from "@/store/editorStore"
 import { CgSpinner } from "react-icons/cg"
 import { useT } from "@/i18n"
+import { useIsMobile } from "@/hooks/useIsMobile"
+import { useUiStore } from "@/store/uiStore"
 
 export const Filebar = () => {
   const [isFilebarOpen, setFilebarOpen] = useState(true)
@@ -25,6 +27,9 @@ export const Filebar = () => {
   const fileListRef = useRef<HTMLDivElement>(null!)
 
   const t = useT()
+  // на телефоне — выдвижная панель поверх редактора, открывается кнопкой в шапке
+  const isMobile = useIsMobile()
+  const { filesOpen, setFilesOpen } = useUiStore()
   // файлы грузит AuthService при входе и восстановлении сессии, у гостя — localStorage
   const { items, isLoading } = useFileSystemStore()
 
@@ -57,6 +62,7 @@ export const Filebar = () => {
       else goToFolder(item.id)
     } else if (!isDragMode) {
       openFile(item as FileItem)
+      setFilesOpen(false)
     }
   }
 
@@ -69,119 +75,135 @@ export const Filebar = () => {
 
   const visibleItems = useFileFilter(items, currentFolder, searchText)
 
+  const classes = [
+    styles.filebar,
+    isMobile ? styles.mobile : !isFilebarOpen && styles.hiddenFilebar,
+    isMobile && filesOpen && styles.mobileOpen
+  ]
+    .filter(Boolean)
+    .join(" ")
+
   return (
-    <div
-      className={`${styles.filebar} ${!isFilebarOpen ? styles.hiddenFilebar : ""}`}
-    >
-      <div className={styles.filebarContainer}>
-        {/* Поиск */}
-        <Input
-          icon={<MdSearch />}
-          placeholder={t("files.search")}
-          className={styles.search}
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-        />
+    <>
+      {isMobile && filesOpen && (
+        <div className={styles.backdrop} onClick={() => setFilesOpen(false)} />
+      )}
+      <div className={classes}>
+        <div className={styles.filebarContainer}>
+          {/* Поиск */}
+          <Input
+            icon={<MdSearch />}
+            placeholder={t("files.search")}
+            className={styles.search}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
 
-        <hr />
+          <hr />
 
-        {/* Навигация */}
-        <div className={styles.navigation}>
-          {!isDragMode ? (
-            <>
-              <button
-                onClick={handleBackClick}
-                disabled={navigationHistory.length === 0}
-                className={styles.backButton}
-              >
-                <IoArrowBack size={20} />
-              </button>
-              <span className={styles.currentPath}>
-                {getCurrentFolderName() ?? t("files.home")}
-              </span>
-            </>
-          ) : (
-            // кнопки в режиме перетаскивания
-            <div className={styles.moveActionsButtons}>
-              <button
-                onClick={handleMoveToRoot}
-                className={`${styles.moveToRootButton} ${styles.actionButton}`}
-              >
-                {t("files.moveHome")}
-              </button>
-              <button
-                onClick={cancelMove}
-                className={`${styles.cancelButton} ${styles.actionButton}`}
-              >
-                {t("files.cancel")}
-              </button>
-            </div>
-          )}
-        </div>
+          {/* Навигация */}
+          <div className={styles.navigation}>
+            {!isDragMode ? (
+              <>
+                <button
+                  onClick={handleBackClick}
+                  disabled={navigationHistory.length === 0}
+                  className={styles.backButton}
+                >
+                  <IoArrowBack size={20} />
+                </button>
+                <span className={styles.currentPath}>
+                  {getCurrentFolderName() ?? t("files.home")}
+                </span>
+              </>
+            ) : (
+              // кнопки в режиме перетаскивания
+              <div className={styles.moveActionsButtons}>
+                <button
+                  onClick={handleMoveToRoot}
+                  className={`${styles.moveToRootButton} ${styles.actionButton}`}
+                >
+                  {t("files.moveHome")}
+                </button>
+                <button
+                  onClick={cancelMove}
+                  className={`${styles.cancelButton} ${styles.actionButton}`}
+                >
+                  {t("files.cancel")}
+                </button>
+              </div>
+            )}
+          </div>
 
-        <hr />
+          <hr />
 
-        {/* Список файлов */}
-        <div
-          className={`${styles.fileList} ${isDragMode ? styles.dragMode : ""}`}
-          ref={fileListRef}
-        >
-          {visibleItems.length > 0 ? (
-            visibleItems.map((item: ItemProps) => (
-              <Item
-                key={item.id}
-                {...item}
-                onClick={
-                  () => handleClick(item)
-                  // тут же будет открытие файоа при item.type === "file"
-                }
-                fileListRef={fileListRef}
-                isSelected={isSelected(item.id)}
-                isDragMode={isDragMode}
-                canDropHere={isDragMode && item.type === "folder"}
-              />
-            ))
-          ) : (
-            <span className={styles.searchError}>
-              {items.length === 0
-                ? t("files.firstHint")
-                : searchText
-                  ? t("files.notFound", { name: searchText })
-                  : t("files.empty")}
-            </span>
-          )}
-        </div>
-
-        <hr />
-
-        {/* Кнопки создания папки или файла, папку в папке создавать нельзя*/}
-        <div className={styles.createingButtons}>
-          <Button
-            variant='secondary'
-            onClick={() => handleCreate("file", currentFolder)}
+          {/* Список файлов */}
+          <div
+            className={`${styles.fileList} ${isDragMode ? styles.dragMode : ""}`}
+            ref={fileListRef}
           >
-            {t("files.newFile")}
-          </Button>
-          {currentFolder === null && (
-            <Button variant='secondary' onClick={() => handleCreate("folder")}>
-              {t("files.newFolder")}
-            </Button>
-          )}
-        </div>
-      </div>
+            {visibleItems.length > 0 ? (
+              visibleItems.map((item: ItemProps) => (
+                <Item
+                  key={item.id}
+                  {...item}
+                  onClick={
+                    () => handleClick(item)
+                    // тут же будет открытие файоа при item.type === "file"
+                  }
+                  fileListRef={fileListRef}
+                  isSelected={isSelected(item.id)}
+                  isDragMode={isDragMode}
+                  canDropHere={isDragMode && item.type === "folder"}
+                />
+              ))
+            ) : (
+              <span className={styles.searchError}>
+                {items.length === 0
+                  ? t("files.firstHint")
+                  : searchText
+                    ? t("files.notFound", { name: searchText })
+                    : t("files.empty")}
+              </span>
+            )}
+          </div>
 
-      {/* Переключатель файлбара */}
-      <button
-        className={styles.openMenuButton}
-        onClick={() => setFilebarOpen(!isFilebarOpen)}
-      >
-        {isFilebarOpen ? (
-          <MdChevronLeft size={30} />
-        ) : (
-          <MdChevronRight size={30} />
+          <hr />
+
+          {/* Кнопки создания папки или файла, папку в папке создавать нельзя*/}
+          <div className={styles.createingButtons}>
+            <Button
+              variant='secondary'
+              onClick={() => handleCreate("file", currentFolder)}
+            >
+              {t("files.newFile")}
+            </Button>
+            {currentFolder === null && (
+              <Button
+                variant='secondary'
+                onClick={() => handleCreate("folder")}
+              >
+                {t("files.newFolder")}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Переключатель файлбара (на телефоне — кнопка в шапке) */}
+        {!isMobile && (
+          <button
+            className={styles.openMenuButton}
+            onClick={() => setFilebarOpen(!isFilebarOpen)}
+          >
+            {isFilebarOpen ? (
+              <MdChevronLeft size={30} />
+            ) : (
+              <MdChevronRight size={30} />
+            )}
+          </button>
         )}
-      </button>
-      {isLoading && <CgSpinner className={styles.loadSpinner} size={35} />}
-    </div>
+        {isLoading && <CgSpinner className={styles.loadSpinner} size={35} />}
+      </div>
+    </>
   )
 }

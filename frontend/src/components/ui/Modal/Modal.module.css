@@ -36,3 +36,11 @@
     transform: scale(1);
   }
 }
+
+@media (max-width: 768px) {
+  .modal > div {
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
+}
