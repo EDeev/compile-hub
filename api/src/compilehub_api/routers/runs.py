@@ -32,6 +32,7 @@ from compilehub_protocol.languages import LANGUAGES
 from ..db import Session
 from ..deps import AppSettings, ClientIp, CurrentUser, OptionalUser
 from ..errors import ApiError, not_found
+from ..metrics import RUNS_CREATED
 from ..models import File, Run
 from ..ratelimit import hit
 from ..redis import Redis
@@ -162,6 +163,7 @@ async def create_run(
     pipe.expire(events_key(run_id), 3600)
     pipe.xadd(QUEUE, {FIELD: job.dump()})
     await pipe.execute()
+    RUNS_CREATED.labels(body.language, "user" if user else "guest", str(body.interactive).lower()).inc()
     token = encode_jwt(settings.jwt_secret.get_secret_value(), "stream", str(run_id), settings.stream_token_ttl)
     return RunCreated(run_id=str(run_id), stream_token=token, position=position)
 

@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from . import errors
+from . import errors, metrics
 from .config import Settings, get_settings
 from .db import make_engine, make_sessionmaker
 from .mail import Mailer
@@ -24,7 +24,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         engine = make_engine(settings.database_url)
         app.state.sessionmaker = make_sessionmaker(engine)
         app.state.redis = make_redis(settings.redis_url)
-        tasks = [asyncio.create_task(collect_results(app.state.sessionmaker, app.state.redis))]
+        on_result = lambda result: metrics.RUN_RESULTS.labels(result.verdict.value).inc()  # noqa: E731
+        tasks = [
+            asyncio.create_task(collect_results(app.state.sessionmaker, app.state.redis, on_result)),
+            asyncio.create_task(metrics.refresh_gauges(app.state.redis)),
+        ]
         if settings.maintenance:
             tasks.append(asyncio.create_task(maintenance.loop(app.state.sessionmaker, app.state.redis)))
         yield
@@ -45,6 +49,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.mailer = Mailer(settings)
     errors.install(app)
+    metrics.install(app)
     for module in (health, auth, me, files, runs):
         app.include_router(module.router)
     return app

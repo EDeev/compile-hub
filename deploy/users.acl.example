@@ -1,0 +1,5 @@
+# Redis ACL: api — всё, кроме опасного; worker — только свои ключи и нужные команды.
+# Пароли подставить те же, что в .env (REDIS_API_PASSWORD, REDIS_WORKER_PASSWORD).
+user default off
+user api on >REDIS_API_PASSWORD ~* &* +@all -@dangerous +info
+user worker on >REDIS_WORKER_PASSWORD ~runs:queue ~runs:results ~run:* ~workers:* resetchannels -@all +@stream +del +exists +expire +set +get +ping +hello +client|setinfo +client|setname

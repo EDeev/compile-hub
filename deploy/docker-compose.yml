@@ -1,0 +1,56 @@
+# CompileHub на dorm: /opt/compilehub (или /root/compilehub — snap docker не видит /opt).
+# Postgres — кластер хоста, база compilehub; секреты — в .env рядом (см. env.example).
+name: compilehub
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--aclfile", "/etc/redis/users.acl"]
+    volumes:
+      - ./users.acl:/etc/redis/users.acl:ro
+    mem_limit: 256m
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/edeev/compile-hub-api:${TAG:-latest}
+    env_file: .env
+    environment:
+      CH_ENV: prod
+      CH_REDIS_URL: redis://api:${REDIS_API_PASSWORD}@redis:6379/0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:8097:8000"  # /metrics для Prometheus через nginx хоста
+    depends_on: [redis]
+    mem_limit: 512m
+    restart: unless-stopped
+
+  worker:
+    image: ghcr.io/edeev/compile-hub-worker:${TAG:-latest}
+    privileged: true  # nsjail: namespaces и cgroup v2 задач
+    cgroup: private
+    cpus: 1  # dorm перегревается; на новом сервере — больше и WORKER_SLOTS по числу ядер
+    mem_limit: 1536m
+    environment:
+      WORKER_REDIS_URL: redis://worker:${REDIS_WORKER_PASSWORD}@redis:6379/0
+      WORKER_NAME: dorm-1
+      WORKER_SLOTS: "1"
+      WORKER_LANGUAGES: cpp,c,python,javascript
+    volumes:
+      - worker-cache:/var/cache/compilehub
+    ports:
+      - "127.0.0.1:9200:9200"  # метрики воркера
+    depends_on: [redis]
+    stop_grace_period: 90s  # дать доработать текущему запуску
+    restart: unless-stopped
+
+  web:
+    image: ghcr.io/edeev/compile-hub-web:${TAG:-latest}
+    ports:
+      - "127.0.0.1:8096:80"
+    depends_on: [api]
+    mem_limit: 64m
+    restart: unless-stopped
+
+volumes:
+  worker-cache:

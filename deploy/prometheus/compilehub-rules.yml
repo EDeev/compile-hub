@@ -1,0 +1,30 @@
+# Правила для /etc/prometheus/rules/alerts.yml на SPB (группа compilehub).
+groups:
+  - name: compilehub
+    rules:
+      - alert: CompileHubNoWorkers
+        expr: compilehub_api_workers == 0
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "CompileHub: нет живых воркеров — запуск кода не работает"
+      - alert: CompileHubQueueBacklog
+        expr: compilehub_api_queue_length > 20
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "CompileHub: в очереди {{ $value }} задач дольше 5 минут"
+      - alert: CompileHubWorkerPaused
+        expr: compilehub_worker_paused == 1
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: "CompileHub: воркер на паузе по температуре дольше 15 минут ({{ with query \"compilehub_worker_temperature_celsius\" }}{{ . | first | value }}{{ end }} °C)"
+      - alert: CompileHubInternalErrors
+        expr: >
+          sum(rate(compilehub_worker_runs_total{verdict="INTERNAL_ERROR"}[15m]))
+          / clamp_min(sum(rate(compilehub_worker_runs_total[15m])), 1e-9) > 0.1
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "CompileHub: больше 10% запусков завершаются INTERNAL_ERROR"

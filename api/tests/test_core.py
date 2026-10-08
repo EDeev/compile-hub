@@ -65,3 +65,12 @@ async def test_unknown_route_uses_error_format(client):
     r = await client.get("/api/nope")
     assert r.status_code == 404
     assert r.json() == {"error": {"code": "not_found", "message": "Not Found"}}
+
+
+async def test_metrics(client):
+    await client.get("/api/nope")
+    await client.post("/api/runs", json={"language": "python", "code": ""})  # нет воркеров — 503 no_workers
+    text = (await client.get("/metrics")).text
+    assert 'compilehub_api_errors_total{code="no_workers"}' in text
+    assert 'compilehub_api_request_seconds_count{method="POST",route="/api/runs",status="503"}' in text
+    assert "compilehub_api_queue_length" in text

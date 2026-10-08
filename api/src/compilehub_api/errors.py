@@ -45,6 +45,9 @@ _HTTP_CODES = {400: "bad_request", 401: "unauthorized", 403: "forbidden", 404: "
 def install(app: FastAPI) -> None:
     @app.exception_handler(ApiError)
     async def _api_error(_: Request, exc: ApiError) -> JSONResponse:
+        from .metrics import ERRORS
+
+        ERRORS.labels(exc.code).inc()
         return JSONResponse(body(exc.code, exc.message, exc.details), exc.status, headers=exc.headers)
 
     @app.exception_handler(RequestValidationError)
