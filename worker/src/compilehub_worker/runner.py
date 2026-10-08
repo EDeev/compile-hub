@@ -39,8 +39,8 @@ from .toolchains import TOOLCHAINS, run_argv
 log = logging.getLogger(__name__)
 
 COMPILE_LIMITS = ExecLimits(
-    wall_ms=15_000, cpu_ms=10_000, memory_mb=512, output_bytes=64 * 1024, tmp_mb=128, pids=128, nofile=1024
-)  # компиляторам (go, javac) нужно больше файлов и потоков
+    wall_ms=15_000, cpu_ms=10_000, memory_mb=1024, output_bytes=64 * 1024, tmp_mb=128, pids=128, nofile=1024
+)  # компиляторам нужно больше файлов и потоков (go, javac) и памяти (PCH GCC 16 — 170 МБ в кэше страниц)
 EVENTS_TTL = 600  # с: сколько живёт поток событий после завершения
 EVENTS_MAXLEN = 5000
 FLUSH_MS = 50
