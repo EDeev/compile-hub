@@ -7,7 +7,7 @@ export const AboutTab = () => {
   const languages = useLanguagesStore((s) => s.languages)
   return (
     <div className={styles.mainContainer}>
-      <h3>{t("settings.aboutTitle")}</h3>
+      <h2 className='settingsTitle'>{t("settings.aboutTitle")}</h2>
       <p>{t("settings.aboutText")}</p>
       <p>{t("settings.languages")}:</p>
       <ul>

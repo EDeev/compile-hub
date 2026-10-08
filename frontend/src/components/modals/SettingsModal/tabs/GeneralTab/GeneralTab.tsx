@@ -74,7 +74,7 @@ export const GeneralTab = () => {
 
   return (
     <div className={styles.mainContainer}>
-      <h3>{t("settings.generalTitle")}</h3>
+      <h2 className='settingsTitle'>{t("settings.generalTitle")}</h2>
       {!currentUser.isGuest && (
         <div className={styles.profileContainer}>
           <div className={styles.profileInfo}>

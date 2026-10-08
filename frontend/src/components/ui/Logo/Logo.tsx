@@ -15,7 +15,7 @@ export const Logo: React.FC<LogoProps> = ({
 
   return (
     <div className={logoClasses} {...props}>
-      <img src={logoImage} alt='CompileHub' />
+      <img src={logoImage} alt={variant === "compact" ? "CompileHub" : ""} />
       <span>CompileHub</span>
     </div>
   )

@@ -21,7 +21,7 @@ export const EditorTab = () => {
 
   return (
     <div className={styles.mainContainer}>
-      <h3>{t("settings.editorTitle")}</h3>
+      <h2 className='settingsTitle'>{t("settings.editorTitle")}</h2>
       <div className={styles.optionContainer}>
         <span>{t("settings.fontSize")}</span>
         <div className={styles.fontSizeInput}>

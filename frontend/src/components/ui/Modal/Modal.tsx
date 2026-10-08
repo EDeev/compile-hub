@@ -1,12 +1,20 @@
 import styles from "./Modal.module.css"
 import { useModalStore } from "@/store/modalStore"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 
 export const Modal = () => {
   const { isOpen, isLocked, content, closeModal } = useModalStore()
   const modalRef = useRef<HTMLDivElement>(null)
 
   const mouseDownTarget = useRef<EventTarget | null>(null)
+  const [label, setLabel] = useState("CompileHub")
+
+  // имя окна для экранных чтецов — по его заголовку
+  useEffect(() => {
+    if (!isOpen) return
+    const heading = modalRef.current?.querySelector("h1, h2, h3, p")
+    setLabel(heading?.textContent?.trim() || "CompileHub")
+  }, [isOpen, content])
 
   // обработчик Esc
   useEffect(() => {
@@ -52,6 +60,7 @@ export const Modal = () => {
       className={styles.modal}
       role='dialog'
       aria-modal='true'
+      aria-label={label}
       onMouseDown={handleMouseDown}
       onClick={handleBackdropClick}
     >

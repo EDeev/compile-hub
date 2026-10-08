@@ -149,3 +149,8 @@ a.link {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+.settingsTitle {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-xs);
+}
