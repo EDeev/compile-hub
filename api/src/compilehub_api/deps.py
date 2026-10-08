@@ -1,3 +1,4 @@
+import ipaddress
 from typing import Annotated
 
 import jwt
@@ -27,13 +28,20 @@ AppSettings = Annotated[Settings, Depends(_settings)]
 AppMailer = Annotated[Mailer, Depends(_mailer)]
 
 
-def client_ip(request: Request) -> str:
-    """IP клиента: заголовок от nginx на SPB, иначе адрес соединения."""
-    header = request.headers.get(request.app.state.settings.real_ip_header)
-    return header or (request.client.host if request.client else "unknown")
+def client_ip(request: Request) -> str | None:
+    """Публичный IP клиента (заголовок от nginx, иначе адрес соединения) или None, если настоящий адрес
+    неизвестен. За SPB так и есть: SNI-маршрутизатор на 443 отдаёт соединение сайтам с 127.0.0.1 без
+    PROXY protocol — тогда ограничения считаются не по IP (см. ratelimit.hit_ip)."""
+    raw = request.headers.get(request.app.state.settings.real_ip_header) or (
+        request.client.host if request.client else ""
+    )
+    try:
+        return raw if ipaddress.ip_address(raw.strip()).is_global else None
+    except ValueError:
+        return None
 
 
-ClientIp = Annotated[str, Depends(client_ip)]
+ClientIp = Annotated[str | None, Depends(client_ip)]
 
 
 async def _optional_user(request: Request, session: Session, settings: AppSettings) -> User | None:

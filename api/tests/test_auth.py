@@ -229,14 +229,25 @@ async def test_change_password_keeps_current_session(app, client):
 
 
 async def test_login_rate_limit(client):
-    for _ in range(10):
-        await client.post("/api/auth/login", json={"login": "x", "password": "y"})
-    r = await client.post("/api/auth/login", json={"login": "x", "password": "y"})
+    # перебор одного аккаунта — 10 попыток в минуту на логин, с любых адресов
+    for i in range(10):
+        await client.post("/api/auth/login", json={"login": "x", "password": "y"}, headers={"X-Real-IP": f"8.8.8.{i}"})
+    r = await client.post("/api/auth/login", json={"login": "X", "password": "y"})
     assert r.status_code == 429 and r.json()["error"]["code"] == "rate_limited"
     assert int(r.headers["Retry-After"]) >= 1
-    # другой IP (за nginx — X-Real-IP) считается отдельно
-    r = await client.post("/api/auth/login", json={"login": "x", "password": "y"}, headers={"X-Real-IP": "10.0.0.9"})
-    assert r.status_code == 401
+    assert (await client.post("/api/auth/login", json={"login": "other", "password": "y"})).status_code == 401
+
+
+async def test_login_rate_limit_by_public_ip(client):
+    ip = {"X-Real-IP": "93.184.216.34"}
+    statuses = [
+        (await client.post("/api/auth/login", json={"login": f"u{i}", "password": "y"}, headers=ip)).status_code
+        for i in range(40)
+    ]
+    # 30 в минуту с адреса (ведро пополняется, пока идут попытки, — поэтому с запасом)
+    assert 429 in statuses and statuses.index(429) <= 33
+    # без настоящего IP (за SPB — 127.0.0.1) — общее ведро, его этот адрес не исчерпал
+    assert (await client.post("/api/auth/login", json={"login": "u99", "password": "y"})).status_code == 401
 
 
 # ---------------------------------------------------------------- профиль

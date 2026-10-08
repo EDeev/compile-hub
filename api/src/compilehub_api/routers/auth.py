@@ -11,7 +11,7 @@ from ..db import Session
 from ..deps import AppMailer, AppSettings, ClientIp, CurrentUser, user_out
 from ..errors import ApiError, unauthorized
 from ..models import EmailToken, RefreshToken, User, UserSettings
-from ..ratelimit import hit
+from ..ratelimit import hit, hit_ip
 from ..redis import Redis
 from ..schemas import (
     AccessOut,
@@ -104,7 +104,7 @@ def _send_verify(tasks: BackgroundTasks, mailer: AppMailer, settings: AppSetting
 
 @router.get("/check-username", response_model=AvailableOut)
 async def check_username(username: str, session: Session, redis: Redis, ip: ClientIp) -> AvailableOut:
-    await hit(redis, f"check:ip:{ip}", 60, 60)
+    await hit_ip(redis, "check", ip, 60, 60, overall=600)
     try:
         _username(username)
     except ValueError:
@@ -124,7 +124,7 @@ async def register(
     mailer: AppMailer,
     ip: ClientIp,
 ) -> AuthOut:
-    await hit(redis, f"register:ip:{ip}", 5, 3600)
+    await hit_ip(redis, "register", ip, 5, 3600, overall=60)
     for column, code, what in ((User.username, "username_taken", "Username"), (User.email, "email_taken", "Email")):
         value = body.username if code == "username_taken" else body.email
         if await session.scalar(select(User.id).where(column == value)):
@@ -150,7 +150,9 @@ async def register(
 async def login(
     body: LoginIn, response: Response, session: Session, redis: Redis, settings: AppSettings, ip: ClientIp
 ) -> AuthOut:
-    await hit(redis, f"login:ip:{ip}", 10, 60)
+    # перебор паролей одного аккаунта — по логину; общий поток — по IP или общим ведром
+    await hit(redis, f"login:id:{token_hash(body.login.lower()).hex()}", 10, 60)
+    await hit_ip(redis, "login", ip, 30, 60, overall=300)
     column = User.email if "@" in body.login else User.username
     user = await session.scalar(select(User).where(column == body.login))
     # одна ошибка и для неизвестного логина, и для неверного пароля — не раскрываем, какие почты зарегистрированы
@@ -165,7 +167,7 @@ async def login(
 async def refresh(
     request: Request, response: Response, session: Session, redis: Redis, settings: AppSettings, ip: ClientIp
 ) -> AccessOut:
-    await hit(redis, f"refresh:ip:{ip}", 60, 60)
+    await hit_ip(redis, "refresh", ip, 60, 60, overall=1200)
     token = request.cookies.get(COOKIE)
     if not token:
         raise unauthorized("No refresh token")
@@ -209,7 +211,7 @@ async def logout(request: Request, response: Response, session: Session) -> None
 
 @router.post("/verify", response_model=UserOut)
 async def verify(body: TokenIn, session: Session, redis: Redis, ip: ClientIp) -> UserOut:
-    await hit(redis, f"verify:ip:{ip}", 20, 60)
+    await hit_ip(redis, "verify", ip, 20, 60, overall=200)
     row = await _use_email_token(session, body.token, "verify")
     user = await session.get(User, row.user_id)
     assert user is not None
@@ -250,7 +252,7 @@ async def forgot_password(
     ip: ClientIp,
 ) -> None:
     """Всегда 202 — ответ не раскрывает, зарегистрирован ли адрес. Сброс — только для подтверждённой почты."""
-    await hit(redis, f"forgot:ip:{ip}", 10, 3600)
+    await hit_ip(redis, "forgot", ip, 10, 3600, overall=100)
     await hit(redis, f"forgot:email:{token_hash(body.email.lower()).hex()}", 3, 3600)
     user = await session.scalar(select(User).where(User.email == body.email))
     if user is None or not user.verified:
@@ -263,7 +265,7 @@ async def forgot_password(
 
 @router.post("/password/reset", status_code=204)
 async def reset_password(body: ResetIn, session: Session, redis: Redis, ip: ClientIp) -> None:
-    await hit(redis, f"reset:ip:{ip}", 10, 3600)
+    await hit_ip(redis, "reset", ip, 10, 3600, overall=100)
     row = await _use_email_token(session, body.token, "reset")
     user = await session.get(User, row.user_id)
     assert user is not None

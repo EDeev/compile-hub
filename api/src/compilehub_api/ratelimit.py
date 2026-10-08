@@ -29,6 +29,14 @@ return {allowed, wait}
 """
 
 
+async def hit_ip(redis: Redis, name: str, ip: str | None, capacity: int, per_seconds: float, overall: int) -> None:
+    """По IP, если он известен; иначе — общее ведро на всех с ёмкостью overall."""
+    if ip:
+        await hit(redis, f"{name}:ip:{ip}", capacity, per_seconds)
+    else:
+        await hit(redis, f"{name}:all", overall, per_seconds)
+
+
 async def hit(redis: Redis, key: str, capacity: int, per_seconds: float, cost: int = 1) -> None:
     """Списать cost из ведра «capacity за per_seconds»; не хватает — 429 rate_limited с Retry-After."""
     allowed, wait_ms = await redis.eval(_LUA, 1, f"rl:{key}", capacity, capacity / per_seconds, cost)

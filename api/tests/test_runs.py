@@ -149,6 +149,15 @@ async def test_user_runs_history_and_files(app, client):
     assert (await client.get("/api/me", headers=alice)).json()["usage"]["runsToday"] == 3
 
 
+async def test_guest_gets_anonymous_cookie(app, client):
+    await worker_online(app.state.redis)
+    r = await client.post("/api/runs", json=PY)
+    guest = client.cookies.get("ch_guest")
+    assert r.status_code == 202 and guest and len(guest) == 32
+    await client.post("/api/runs", json=PY)
+    assert client.cookies.get("ch_guest") == guest  # не пересоздаётся
+
+
 async def test_cancel(app, client):
     await worker_online(app.state.redis)
     created = (await client.post("/api/runs", json=PY)).json()

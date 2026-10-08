@@ -2,13 +2,14 @@
 
 import asyncio
 import contextlib
+import re
 import time
 from datetime import datetime
 from uuid import UUID
 
 import jwt
 import uuid6
-from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Query, Request, Response, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 from sqlalchemy import select
 
@@ -34,7 +35,7 @@ from ..deps import AppSettings, ClientIp, CurrentUser, OptionalUser
 from ..errors import ApiError, not_found
 from ..metrics import RUNS_CREATED
 from ..models import File, Run
-from ..ratelimit import hit
+from ..ratelimit import hit, hit_ip
 from ..redis import Redis
 from ..schemas import LanguageOut, RunBrief, RunCreated, RunIn, RunOut
 from ..security import decode_jwt, encode_jwt
@@ -48,6 +49,9 @@ BATCH = Limits(wall_ms=5_000, cpu_ms=3_000, memory_mb=256)
 INTERACTIVE = Limits(wall_ms=60_000, cpu_ms=5_000, memory_mb=256, idle_ms=30_000)
 STREAM_TTL = 600  # с: ключи ввода и отмены
 MAX_STDIN_MESSAGE = 64 * 1024
+GUEST_COOKIE = "ch_guest"
+GUEST_RE = re.compile(r"[0-9a-f]{32}")
+GUESTS_PER_MINUTE = 60  # все гости вместе, когда IP неизвестен
 
 
 def _iso(dt: datetime | None) -> str | None:
@@ -92,10 +96,28 @@ async def languages(redis: Redis) -> list[LanguageOut]:
 
 @router.post("/runs", response_model=RunCreated, status_code=202)
 async def create_run(
-    body: RunIn, user: OptionalUser, session: Session, redis: Redis, settings: AppSettings, ip: ClientIp
+    body: RunIn,
+    request: Request,
+    response: Response,
+    user: OptionalUser,
+    session: Session,
+    redis: Redis,
+    settings: AppSettings,
+    ip: ClientIp,
 ) -> RunCreated:
     limits = limits_service.for_user(user) if user else limits_service.GUEST
-    scope = f"user:{user.id}" if user else f"ip:{ip}"
+    if user:
+        scope = f"user:{user.id}"
+    else:
+        # гость — по анонимной cookie (IP за SPB неизвестен); смена cookie упирается в общий потолок гостей
+        guest = request.cookies.get(GUEST_COOKIE, "")
+        if not GUEST_RE.fullmatch(guest):
+            guest = uuid6.uuid7().hex
+            response.set_cookie(
+                GUEST_COOKIE, guest, max_age=365 * 86400, path="/api", httponly=True,
+                secure=settings.cookie_secure, samesite="lax",
+            )  # fmt: skip
+        scope = f"guest:{guest}"
 
     if body.language not in LANGUAGES:
         raise ApiError(400, "unknown_language", f"Unknown language: {body.language}")
@@ -124,6 +146,8 @@ async def create_run(
 
     if limits.runs_per_minute is not None:
         await hit(redis, f"run:{scope}", limits.runs_per_minute, 60)
+        if not user:
+            await hit_ip(redis, "run:guests", ip, limits.runs_per_minute, 60, overall=GUESTS_PER_MINUTE)
     if limits.runs_per_day is not None:
         key = limits_service.quota_key(scope)
         used = await redis.incr(key)
