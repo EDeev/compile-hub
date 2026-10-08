@@ -23,6 +23,10 @@ COPY --from=nsjail /nsjail /usr/local/bin/nsjail
 COPY --from=node /usr/local/bin/node /usr/local/bin/node
 COPY --from=go /usr/local/go /usr/local/go
 
+# помощник замера: пиковый RSS и CPU-время самой программы (см. worker/rusage.c)
+COPY worker/rusage.c /tmp/rusage.c
+RUN gcc -O2 -static -o /usr/local/bin/ch-rusage /tmp/rusage.c && rm /tmp/rusage.c
+
 # предкомпилированный bits/stdc++.h — флаги совпадают с компиляцией C++ в toolchains.py
 RUN mkdir -p /usr/local/include/pch/bits \
     && g++ -std=c++20 -O2 -pipe -x c++-header "$(echo /usr/include/x86_64-linux-gnu/c++/*/bits/stdc++.h)" \

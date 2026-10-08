@@ -20,6 +20,7 @@ class Toolchain:
     compile_mounts_rw: tuple[str, ...] = ()
     extra_mounts_ro: tuple[str, ...] = ()
     memory_args: bool = False  # подставлять лимит памяти в аргументы запуска ({memory_mb})
+    compile_wall_ms: int = 15_000  # Go и Java компилируются заметно дольше
 
 
 CXXFLAGS = ("-std=c++20", "-O2", "-pipe")
@@ -65,6 +66,7 @@ TOOLCHAINS: dict[str, Toolchain] = {
             version=("/usr/local/go/bin/go", "env", "GOVERSION"),
             compile_env={"GOCACHE": GO_CACHE, "GOPATH": "/tmp/go", "CGO_ENABLED": "0", "GOFLAGS": "-mod=mod"},
             compile_mounts_rw=(GO_CACHE,),
+            compile_wall_ms=30_000,
         ),
         Toolchain(
             "java",
@@ -82,6 +84,7 @@ TOOLCHAINS: dict[str, Toolchain] = {
             version=(f"{JAVA_HOME}/bin/java", "-XshowSettings:properties", "-version"),
             extra_mounts_ro=("/etc/java-21-openjdk",),
             memory_args=True,
+            compile_wall_ms=30_000,
         ),
     )
 }

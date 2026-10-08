@@ -37,6 +37,7 @@ SECCOMP = (
 
 RO_MOUNTS = ("/usr",)
 SYMLINKS = (("/usr/bin", "/bin"), ("/usr/lib", "/lib"), ("/usr/lib64", "/lib64"), ("/usr/sbin", "/sbin"))
+RUSAGE = "/usr/local/bin/ch-rusage"  # см. worker/rusage.c
 DEVICES = ("/dev/null", "/dev/zero", "/dev/urandom", "/dev/random")
 BASE_ENV = {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": "/tmp", "LANG": "C.UTF-8", "TMPDIR": "/tmp"}
 
@@ -142,6 +143,7 @@ def nsjail_argv(
     log_path: Path,
     mounts_ro: tuple[str, ...] = (),
     mounts_rw: tuple[str, ...] = (),
+    pass_fd: int | None = None,
 ) -> list[str]:
     args = [
         nsjail,
@@ -174,6 +176,8 @@ def nsjail_argv(
         args += ["--bindmount", dev]
     for key, value in (BASE_ENV | env).items():
         args += ["--env", f"{key}={value}"]
+    if pass_fd is not None:
+        args += ["--pass_fd", str(pass_fd)]
     return [*args, "--", *argv]
 
 
@@ -205,8 +209,10 @@ async def execute(
     env: dict[str, str] | None = None,
     mounts_ro: tuple[str, ...] = (),
     mounts_rw: tuple[str, ...] = (),
+    measure: bool = False,
 ) -> Execution:
-    """Выполнить argv в песочнице. stdin — очередь байтов, None в ней — конец ввода."""
+    """Выполнить argv в песочнице. stdin — очередь байтов, None в ней — конец ввода.
+    measure — запустить через ch-rusage: память и CPU-время самой программы, без nsjail."""
     loop = asyncio.get_running_loop()
     result = Execution()
     cg = cgroups.create(limits)
@@ -217,7 +223,11 @@ async def execute(
         with open(procs, "w") as f:
             f.write(str(os.getpid()))
 
-    argv_full = nsjail_argv(nsjail, box, argv, limits, env or {}, log_path, mounts_ro, mounts_rw)
+    report_r = report_w = None
+    if measure:
+        report_r, report_w = os.pipe()
+        argv = [RUSAGE, str(report_w), *argv]
+    argv_full = nsjail_argv(nsjail, box, argv, limits, env or {}, log_path, mounts_ro, mounts_rw, report_w)
     started = time.monotonic()
     proc = subprocess.Popen(  # noqa: ASYNC220 — запуск мгновенный, ожидание и потоки ниже асинхронные
         argv_full,
@@ -226,7 +236,10 @@ async def execute(
         stderr=subprocess.PIPE,
         preexec_fn=enter_cgroup,  # noqa: PLW1509 — воркер однопоточный
         close_fds=True,
+        pass_fds=(report_w,) if report_w is not None else (),
     )
+    if report_w is not None:
+        os.close(report_w)
     assert proc.stdin and proc.stdout and proc.stderr
     last_activity = time.monotonic()
     pending: dict[str, codecs.IncrementalDecoder] = {
@@ -336,6 +349,15 @@ async def execute(
     # страничный кэш библиотек и годится только для лимита
     result.memory_kb = rusage.ru_maxrss  # КБ, максимум по дереву процессов
     await Cgroups.remove(cg)
+    if report_r is not None:
+        os.set_blocking(report_r, False)
+        try:
+            maxrss, cpu = os.read(report_r, 256).split()[:2]
+            result.memory_kb, result.cpu_ms = int(maxrss), int(cpu)
+        except (BlockingIOError, ValueError):
+            pass  # программу убили вместе с помощником (лимит, отмена) — остаются общие цифры
+        finally:
+            os.close(report_r)
 
     if os.WIFSIGNALED(status):
         result.signal = os.WTERMSIG(status)

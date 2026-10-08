@@ -6,6 +6,7 @@ import logging
 import signal
 import subprocess
 import time
+import uuid
 
 from prometheus_client import start_http_server
 from redis.asyncio import Redis
@@ -18,12 +19,14 @@ from compilehub_protocol import (
     WORKERS_GROUP,
     Exit,
     Job,
+    Limits,
     Result,
     Verdict,
     WorkerInfo,
     events_key,
     worker_key,
 )
+from compilehub_protocol.languages import LANGUAGES
 
 from . import metrics
 from .config import Config
@@ -78,9 +81,32 @@ class Worker:
         self.versions = await asyncio.to_thread(detect_versions, self.config.languages)
         log.info("воркер %s: слотов %d, языки %s", self.config.name, self.config.slots, self.versions)
         self.runner = Runner(self.config, self.redis, self.cgroups, self.versions)
+        await self.self_test()
         await self.ensure_group()
         metrics.SLOTS.set(self.config.slots)
         start_http_server(self.config.metrics_port)
+
+    async def self_test(self) -> None:
+        """«Hello, world» на каждом включённом языке: проверка песочницы и прогрев тулчейнов (первая сборка Go
+        или Java на холодном кэше страниц идёт секунды). Язык, не прошедший проверку, не объявляется."""
+        assert self.runner
+        for lang in list(self.versions):
+            job = Job(
+                run_id=uuid.uuid4(),
+                language=lang,
+                code=LANGUAGES[lang].template,
+                limits=Limits(wall_ms=10_000, cpu_ms=5_000, memory_mb=256),
+            )
+            started = time.monotonic()
+            result = await self.runner.process(job)
+            took = time.monotonic() - started
+            if result.verdict == Verdict.OK and result.output.strip() == "Hello, world!":
+                log.info("самопроверка %s: OK за %.1f с", lang, took)
+            else:
+                log.error(
+                    "самопроверка %s не прошла (%s): %s — язык выключен", lang, result.verdict, result.output[:300]
+                )
+                del self.versions[lang]
 
     async def ensure_group(self) -> None:
         with contextlib.suppress(ResponseError):  # BUSYGROUP — группа уже есть

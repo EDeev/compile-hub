@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import dataclasses
 import logging
 import signal as signals
 import time
@@ -173,7 +174,7 @@ class Runner:
                         **common,
                         box=box,
                         argv=list(tc.compile),
-                        limits=COMPILE_LIMITS,
+                        limits=dataclasses.replace(COMPILE_LIMITS, wall_ms=tc.compile_wall_ms),
                         stdin=no_input,
                         env=tc.compile_env,
                         mounts_ro=tc.extra_mounts_ro,
@@ -213,6 +214,7 @@ class Runner:
                 on_output=emitter.output,
                 env=tc.env,
                 mounts_ro=tc.extra_mounts_ro,
+                measure=True,
             )
             metrics.DURATION.labels(job.language, "run").observe(time.monotonic() - started)
         if ex.internal_error:
