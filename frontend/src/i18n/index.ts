@@ -147,6 +147,21 @@ const ru = {
   "settings.newPassword": "Новый пароль",
   "settings.passwordChanged": "Пароль изменён",
 
+  "oauth.or": "или",
+  "oauth.loginWith": "Войти через {name}",
+  "oauth.title": "Вход через сервисы",
+  "oauth.link": "Привязать",
+  "oauth.unlink": "Отвязать",
+  "oauth.linked": "Аккаунт сервиса привязан",
+  "oauth.error.invalid_state":
+    "Вход прерван: ссылка устарела или открыта в другом браузере — попробуйте ещё раз",
+  "oauth.error.cancelled": "Вход через сервис отменён",
+  "oauth.error.provider_error": "Сервис не ответил — попробуйте ещё раз",
+  "oauth.error.no_email":
+    "Сервис не передал почту — разрешите доступ к почте или зарегистрируйтесь обычным способом",
+  "oauth.error.already_linked": "Этот аккаунт сервиса уже привязан к другому пользователю",
+  "settings.setPassword": "Задать пароль",
+  "error.last_login_method": "Сначала задайте пароль — иначе войти будет нечем",
   "verify.title": "Подтверждение почты",
   "verify.progress": "Проверяем ссылку…",
   "verify.ok": "Почта подтверждена — спасибо!",
@@ -332,6 +347,21 @@ const en: Record<MessageKey, string> = {
   "settings.newPassword": "New password",
   "settings.passwordChanged": "Password changed",
 
+  "oauth.or": "or",
+  "oauth.loginWith": "Continue with {name}",
+  "oauth.title": "Sign-in services",
+  "oauth.link": "Link",
+  "oauth.unlink": "Unlink",
+  "oauth.linked": "Account linked",
+  "oauth.error.invalid_state":
+    "Sign-in interrupted: the link expired or was opened in another browser — try again",
+  "oauth.error.cancelled": "Sign-in was cancelled",
+  "oauth.error.provider_error": "The service didn't respond — try again",
+  "oauth.error.no_email":
+    "The service didn't share your email — allow email access or sign up the usual way",
+  "oauth.error.already_linked": "This service account is already linked to another user",
+  "settings.setPassword": "Set password",
+  "error.last_login_method": "Set a password first — otherwise you won't be able to log in",
   "verify.title": "Email confirmation",
   "verify.progress": "Checking the link…",
   "verify.ok": "Email confirmed — thank you!",

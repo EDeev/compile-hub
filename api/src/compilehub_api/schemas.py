@@ -88,6 +88,8 @@ class UserOut(Camel):
     settings: SettingsOut
     limits: LimitsOut
     usage: UsageOut
+    has_password: bool
+    oauth: list[str]  # привязанные сервисы: yandex, vk
 
 
 class AuthOut(Camel):
@@ -124,12 +126,12 @@ class ResetIn(Camel):
 
 
 class ChangePasswordIn(Camel):
-    current_password: str = Field(min_length=1, max_length=128)
+    current_password: str = Field("", max_length=128)  # пусто — первая установка пароля у входа через сервис
     password: Password
 
 
 class DeleteAccountIn(Camel):
-    password: str = Field(min_length=1, max_length=128)
+    password: str = Field("", max_length=128)
 
 
 class AccessOut(Camel):

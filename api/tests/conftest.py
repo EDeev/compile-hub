@@ -29,6 +29,8 @@ def settings(**overrides) -> Settings:
         "public_url": "https://compilehub.test",
         "cookie_secure": False,
         "maintenance": False,
+        "yandex_client_id": "ya-id",
+        "yandex_client_secret": "ya-secret",
     }
     return Settings(**(base | overrides))
 

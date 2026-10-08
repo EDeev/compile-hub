@@ -8,6 +8,7 @@ import { useModalStore } from "@/store/modalStore"
 import { AuthService } from "@/services/authService"
 import { FormValidators } from "@/utils/validators"
 import { errorMessage, useLanguageStore, useT } from "@/i18n"
+import { useOAuthProviders } from "@/hooks/useOAuthProviders"
 import styles from "./GeneralTab.module.css"
 import RuFlag from "@assets/icons/ru-flag.svg"
 import UsFlag from "@assets/icons/us-flag.svg"
@@ -20,6 +21,16 @@ export const GeneralTab = () => {
   const [resent, setResent] = useState(false)
   const [current, setCurrent] = useState("")
   const [next, setNext] = useState("")
+  const providers = useOAuthProviders()
+
+  const toggleService = async (id: string, linked: boolean) => {
+    try {
+      if (linked) await AuthService.oauthUnlink(id)
+      else await AuthService.oauthStart(id, "link")
+    } catch (e) {
+      toast.error(errorMessage(e))
+    }
+  }
 
   useEffect(() => {
     if (!currentUser.isGuest) AuthService.refreshMe().catch(() => {}) // свежие лимиты и использование
@@ -113,14 +124,42 @@ export const GeneralTab = () => {
       </div>
       {!currentUser.isGuest && (
         <>
+          {providers.length > 0 && (
+            <div className={styles.passwordContainer}>
+              <span>{t("oauth.title")}</span>
+              {providers.map((p) => {
+                const linked = currentUser.oauth.includes(p.id)
+                return (
+                  <div key={p.id} className={styles.optionContainer}>
+                    <span>{p.name}</span>
+                    <Button
+                      variant={linked ? "secondary" : "primary"}
+                      onClick={() => toggleService(p.id, linked)}
+                    >
+                      {t(linked ? "oauth.unlink" : "oauth.link")}
+                    </Button>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          {/* у аккаунта, созданного входом через сервис, пароля нет — его можно задать без текущего */}
           <div className={styles.passwordContainer}>
-            <span>{t("settings.changePassword")}</span>
-            <Input
-              type='password'
-              placeholder={t("settings.currentPassword")}
-              value={current}
-              onChange={(e) => setCurrent(e.target.value)}
-            />
+            <span>
+              {t(
+                currentUser.hasPassword
+                  ? "settings.changePassword"
+                  : "settings.setPassword"
+              )}
+            </span>
+            {currentUser.hasPassword && (
+              <Input
+                type='password'
+                placeholder={t("settings.currentPassword")}
+                value={current}
+                onChange={(e) => setCurrent(e.target.value)}
+              />
+            )}
             <Input
               type='password'
               placeholder={t("settings.newPassword")}
@@ -130,10 +169,16 @@ export const GeneralTab = () => {
             />
             <Button
               variant='secondary'
-              disabled={!current || !nextCheck.isValid}
+              disabled={
+                (currentUser.hasPassword && !current) || !nextCheck.isValid
+              }
               onClick={changePassword}
             >
-              {t("settings.changePassword")}
+              {t(
+                currentUser.hasPassword
+                  ? "settings.changePassword"
+                  : "settings.setPassword"
+              )}
             </Button>
           </div>
           <div className={styles.optionContainer}>

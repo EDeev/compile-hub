@@ -17,6 +17,7 @@ dependencies = [
     "aiosmtplib>=3.0",
     "prometheus-client>=0.21",
     "uuid6>=2024.7",
+    "httpx2>=2.13",
 ]
 
 [project.scripts]

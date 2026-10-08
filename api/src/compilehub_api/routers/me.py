@@ -6,7 +6,7 @@ from ..errors import ApiError
 from ..redis import Redis
 from ..schemas import DeleteAccountIn, SettingsPatch, UserOut
 from ..security import verify_password
-from .auth import COOKIE, COOKIE_PATH
+from .auth import COOKIE, COOKIE_PATH, NO_PASSWORD
 
 router = APIRouter(prefix="/api/me", tags=["me"])
 
@@ -28,7 +28,7 @@ async def patch_settings(body: SettingsPatch, user: CurrentUser, session: Sessio
 async def delete_account(
     body: DeleteAccountIn, request: Request, response: Response, user: CurrentUser, session: Session
 ) -> None:
-    if not await verify_password(user.password_hash, body.password):
+    if user.password_hash != NO_PASSWORD and not await verify_password(user.password_hash, body.password):
         raise ApiError(403, "wrong_password", "Password is wrong")
     await session.delete(user)  # файлы, папки, запуски, токены — ON DELETE CASCADE
     await session.commit()

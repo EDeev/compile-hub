@@ -20,7 +20,9 @@ export const toUser = (user: ApiUser): User => ({
   isGuest: false,
   emailVerified: user.emailVerified,
   limits: user.limits,
-  usage: user.usage
+  usage: user.usage,
+  hasPassword: user.hasPassword,
+  oauth: user.oauth
 })
 
 // сессия живёт в httpOnly refresh-cookie, поэтому пользователя в localStorage не храним

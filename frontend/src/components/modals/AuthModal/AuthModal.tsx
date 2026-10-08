@@ -3,6 +3,7 @@ import { ROUTES } from "@/router/routes"
 import { Logo } from "@/components/ui/Logo"
 import { useModalStore } from "@/store/modalStore"
 import { AuthForm } from "./AuthForm"
+import { OAuthButtons } from "@/components/common/OAuthButtons"
 import { useAuthForm } from "@/hooks/useAuthForm"
 import styles from "./AuthModal.module.css"
 import { useT } from "@/i18n"
@@ -54,6 +55,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isReg = false }) => {
         onToggleMode={() => setMode(mode === "login" ? "register" : "login")}
         statusMessage={statusMessage}
       />
+      <OAuthButtons disabled={isLoading} />
       <Link
         to={ROUTES.PASSWORD_RESET}
         className={`link ${styles.forgotPassword}`}

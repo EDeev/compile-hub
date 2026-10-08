@@ -35,6 +35,7 @@ COOKIE_PATH = "/api/auth"
 VERIFY_TTL = timedelta(hours=24)
 RESET_TTL = timedelta(hours=1)
 ROTATION_GRACE = timedelta(seconds=10)  # параллельный refresh из второй вкладки — не кража
+NO_PASSWORD = "!"  # аккаунт создан входом через сервис; argon2 такой хеш не примет — вход по паролю закрыт
 
 
 def _now() -> datetime:
@@ -281,7 +282,8 @@ async def reset_password(body: ResetIn, session: Session, redis: Redis, ip: Clie
 
 @router.post("/password/change", status_code=204)
 async def change_password(body: ChangePasswordIn, request: Request, user: CurrentUser, session: Session) -> None:
-    if not await verify_password(user.password_hash, body.current_password):
+    """Смена пароля; у аккаунта без пароля (вход через сервис) — первая установка, без текущего."""
+    if user.password_hash != NO_PASSWORD and not await verify_password(user.password_hash, body.current_password):
         raise ApiError(403, "wrong_password", "Current password is wrong")
     user.password_hash = await hash_password(body.password)
     # текущая сессия остаётся, остальные выходят

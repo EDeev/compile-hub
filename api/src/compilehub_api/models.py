@@ -152,6 +152,19 @@ class EmailToken(Base):
     used_at: Mapped[datetime | None]
 
 
+class OAuthAccount(Base):
+    """Вход через внешний сервис (Яндекс, VK ID): один аккаунт сервиса — один пользователь CompileHub."""
+
+    __tablename__ = "oauth_accounts"
+    __table_args__ = (UniqueConstraint("user_id", "provider", name="oauth_accounts_user_provider_key"),)
+
+    provider: Mapped[str] = mapped_column(Text, primary_key=True)
+    provider_user_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    user_id: Mapped[int] = _user_fk()
+    email: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = _created()
+
+
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
     __table_args__ = (Index("refresh_tokens_user", "user_id"),)

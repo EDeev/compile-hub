@@ -8,6 +8,8 @@ export interface User {
   emailVerified: boolean
   limits: Limits | null
   usage: Usage | null
+  hasPassword: boolean
+  oauth: string[]
 }
 
 export const GUEST_USER: User = {
@@ -17,5 +19,7 @@ export const GUEST_USER: User = {
   isGuest: true,
   emailVerified: false,
   limits: null,
-  usage: null
+  usage: null,
+  hasPassword: false,
+  oauth: []
 }

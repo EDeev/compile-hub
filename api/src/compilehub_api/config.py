@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     smtp_starttls: bool = True
     mail_from: str = "CompileHub <no-reply@compilehub.ru>"
 
+    # вход через сервисы: пусто — кнопка не показывается
+    yandex_client_id: str = ""
+    yandex_client_secret: SecretStr = SecretStr("")
+    vk_client_id: str = ""
+    vk_client_secret: SecretStr = SecretStr("")
+
     queue_max: int = 30  # больше задач в очереди — 503 queue_full
     maintenance: bool = True  # фоновая чистка (в тестах выключена)
     real_ip_header: str = "x-real-ip"

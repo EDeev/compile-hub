@@ -11,7 +11,7 @@ from .config import Settings, get_settings
 from .db import make_engine, make_sessionmaker
 from .mail import Mailer
 from .redis import make_redis
-from .routers import auth, files, health, me, runs
+from .routers import auth, files, health, me, oauth, runs
 from .services import maintenance
 from .services.runs import collect_results
 
@@ -50,7 +50,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.mailer = Mailer(settings)
     errors.install(app)
     metrics.install(app)
-    for module in (health, auth, me, files, runs):
+    for module in (health, auth, oauth, me, files, runs):
         app.include_router(module.router)
     return app
 

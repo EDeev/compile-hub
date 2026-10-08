@@ -9,7 +9,7 @@ from .config import Settings
 from .db import Session
 from .errors import unauthorized
 from .mail import Mailer
-from .models import User
+from .models import OAuthAccount, User
 from .redis import Redis
 from .schemas import SettingsOut, UserOut
 from .security import decode_jwt
@@ -83,4 +83,6 @@ async def user_out(session: Session, redis: Redis, user: User) -> UserOut:
         settings=SettingsOut.model_validate(user.settings, from_attributes=True),
         limits=limits.limits_out(limits.for_user(user)),
         usage=await limits.usage(session, redis, user),
+        has_password=user.password_hash != "!",  # routers.auth.NO_PASSWORD
+        oauth=list(await session.scalars(select(OAuthAccount.provider).where(OAuthAccount.user_id == user.id))),
     )

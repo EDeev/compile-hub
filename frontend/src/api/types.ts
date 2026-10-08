@@ -30,6 +30,13 @@ export interface ApiUser {
   settings: UserSettings
   limits: Limits
   usage: Usage
+  hasPassword: boolean
+  oauth: string[]
+}
+
+export interface OAuthProvider {
+  id: string
+  name: string
 }
 
 export interface AuthResponse {
