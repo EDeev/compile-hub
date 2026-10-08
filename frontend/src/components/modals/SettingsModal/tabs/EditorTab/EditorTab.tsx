@@ -2,24 +2,32 @@ import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { Switcher } from "@/components/ui/Switcher"
 import { useEditorSettings } from "@/store/editorStore"
+import { AuthService } from "@/services/authService"
+import { useT } from "@/i18n"
 import styles from "./EditorTab.module.css"
 
-export const EditorTab = () => {
-  const MIN_FONT_SIZE = 12
-  const MAX_FONT_SIZE = 24
+const MIN_FONT_SIZE = 12
+const MAX_FONT_SIZE = 24
 
+export const EditorTab = () => {
+  const t = useT()
   const { fontSize, changeFontSize, autocomplete, switchAutocomplete } =
     useEditorSettings()
 
+  const setFont = (size: number) => {
+    changeFontSize(size)
+    AuthService.saveSettings({ fontSize: size }).catch(() => {})
+  }
+
   return (
     <div className={styles.mainContainer}>
-      <h3>Editor settings</h3>
+      <h3>{t("settings.editorTitle")}</h3>
       <div className={styles.optionContainer}>
-        <span>Font size</span>
+        <span>{t("settings.fontSize")}</span>
         <div className={styles.fontSizeInput}>
           <Button
             variant='primary'
-            onClick={() => changeFontSize(fontSize - 1)}
+            onClick={() => setFont(fontSize - 1)}
             disabled={fontSize <= MIN_FONT_SIZE}
           >
             -
@@ -34,7 +42,7 @@ export const EditorTab = () => {
           />
           <Button
             variant='primary'
-            onClick={() => changeFontSize(fontSize + 1)}
+            onClick={() => setFont(fontSize + 1)}
             disabled={fontSize >= MAX_FONT_SIZE}
           >
             +
@@ -42,9 +50,12 @@ export const EditorTab = () => {
         </div>
       </div>
       <div className={styles.optionContainer}>
-        <span>Show snippets</span>
+        <span>{t("settings.snippets")}</span>
         <Switcher
-          onChange={() => switchAutocomplete()}
+          onChange={(value) => {
+            switchAutocomplete()
+            AuthService.saveSettings({ autocomplete: value }).catch(() => {})
+          }}
           initialValue={autocomplete}
         />
       </div>

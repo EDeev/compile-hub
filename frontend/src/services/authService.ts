@@ -1,101 +1,101 @@
+import { api, refreshAccessToken, setAccessToken, setSessionLostHandler } from "@/api/client"
+import type { ApiUser, AuthResponse, UserSettings } from "@/api/types"
 import { useUserStore } from "@/store/userStore"
+import { useThemeStore } from "@/store/themeStore"
+import { useEditorSettings } from "@/store/editorStore"
+import { useLanguageStore } from "@/i18n"
+import { useFileSystemStore } from "@/store/fileSystemStore"
+import { useEditorState } from "@/store/editorStore"
+
+/** Применить настройки аккаунта к интерфейсу (тема, язык, редактор). */
+const applySettings = (settings: UserSettings) => {
+  const theme = useThemeStore.getState()
+  if (theme.theme !== settings.theme) theme.setTheme(settings.theme)
+  useLanguageStore.getState().setLanguage(settings.uiLanguage)
+  useEditorSettings.setState({ fontSize: settings.fontSize, autocomplete: settings.autocomplete })
+}
+
+const signIn = async ({ user, accessToken }: AuthResponse) => {
+  setAccessToken(accessToken)
+  useUserStore.getState().login(user)
+  applySettings(user.settings)
+  useEditorState.getState().closeFile()
+  await useFileSystemStore.getState().afterLogin()
+}
+
+const signOut = () => {
+  setAccessToken(null)
+  useUserStore.getState().logout()
+  useEditorState.getState().closeFile()
+  useFileSystemStore.getState().afterLogout()
+}
+
+setSessionLostHandler(signOut)
 
 export const AuthService = {
-  async login(userData: { username: string; password: string }) {
+  /** При запуске: восстановить сессию по refresh-cookie. */
+  async restore() {
     try {
-      const response = await fetch("http://95.31.185.229:9999/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData)
-      })
-
-      if (!response.ok) {
-        if (response.status == 401) {
-          return ["Failed to log in, check your credentials", false] as [string, boolean]
-        } else {
-          return ["Failed to log in, please try again", false] as [string, boolean]
-        }
+      if (await refreshAccessToken()) {
+        const user = await api<ApiUser>("/me")
+        useUserStore.getState().login(user)
+        applySettings(user.settings)
+        await useFileSystemStore.getState().loadItems()
       }
-
-      const data = await response.json()
-
-      const isCorrect =
-        "id" in data &&
-        "email" in data &&
-        "isGuest" in data &&
-        "username" in data &&
-        "token" in data
-
-      if (!isCorrect) {
-        return ["HTTP error, plase try again later", false] as [string, boolean]
-      }
-      // установка залогиневшегося юзера как currentUser в userStore
-      useUserStore.getState().login({
-        email: data.email,
-        id: data.id,
-        isGuest: data.isGuest,
-        username: data.username,
-        token: data.token
-      })
-
-      // await useFileSystemStore.getState().loadItems(testUser.id)
-
-      return ["You successfully logged in", true] as [string, boolean]
-    } catch (error) {
-      console.error("Login error:", error)
-      return ["Failed to log in, check your credentials", false] as [string, boolean]
+    } catch {
+      signOut()
+    } finally {
+      useUserStore.getState().setRestoring(false)
     }
+  },
+
+  async checkUsername(username: string): Promise<boolean> {
+    return (await api<{ available: boolean }>("/auth/check-username", { query: { username } }))
+      .available
+  },
+
+  async login(login: string, password: string) {
+    await signIn(
+      await api<AuthResponse>("/auth/login", { method: "POST", body: { login, password } })
+    )
+  },
+
+  async register(username: string, email: string, password: string) {
+    const uiLanguage = useLanguageStore.getState().language
+    const body = { username, email, password, uiLanguage }
+    await signIn(await api<AuthResponse>("/auth/register", { method: "POST", body }))
   },
 
   async logout() {
-    // Опционально: можно сделать запрос к API для logout
-    useUserStore.getState().logout()
+    try {
+      await api("/auth/logout", { method: "POST" })
+    } finally {
+      signOut()
+    }
   },
 
-  async register(userData: { email: string; username: string; password: string }) {
-    const response = await fetch("http://95.31.185.229:9999/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData)
-    })
+  async refreshMe() {
+    const user = await api<ApiUser>("/me")
+    useUserStore.getState().login(user)
+    return user
+  },
 
-    if (!response.ok) {
-      return ["Failed to sign up, please try again", false] as [string, boolean]
-    }
+  async verify(token: string) {
+    const user = await api<ApiUser>("/auth/verify", { method: "POST", body: { token } })
+    if (!useUserStore.getState().currentUser.isGuest) useUserStore.getState().login(user)
+  },
 
-    const data = await response.json()
+  resendVerification: () => api("/auth/verify/resend", { method: "POST" }),
+  forgotPassword: (email: string) =>
+    api("/auth/password/forgot", { method: "POST", body: { email } }),
+  resetPassword: (token: string, password: string) =>
+    api("/auth/password/reset", { method: "POST", body: { token, password } }),
+  changePassword: (currentPassword: string, password: string) =>
+    api("/auth/password/change", { method: "POST", body: { currentPassword, password } }),
 
-    if (data.success) {
-      return ["Succesully signed up, please login", true] as [string, boolean]
-    } else {
-      return ["Failed to signed up, try later", false] as [string, boolean]
-    }
-
-    // МИГРАЦИЯ ФАЙЛОВ ПОЗЖЕ
-
-    // if (currentUser.isGuest && guestFiles.length > 0) {
-    //   await this.migrateFiles(guestFiles, user.id)
-    // }
+  /** Сохранить настройку на сервере (у гостя — только локально). */
+  async saveSettings(patch: Partial<UserSettings>) {
+    if (useUserStore.getState().currentUser.isGuest) return
+    await api<ApiUser>("/me/settings", { method: "PATCH", body: patch })
   }
-
-  // async migrateFiles(files: Item[], userId: string) {
-  //   try {
-  //     // Оптимизация: переносим только последние 20 файлов
-  //     const filesToMigrate = files.slice(-20).filter((f) => f.size < 500_000) // 500KB max
-
-  //     await fetch("/api/files/migrate", {
-  //       method: "POST",
-  //       body: JSON.stringify({
-  //         userId,
-  //         files: filesToMigrate
-  //       })
-  //     })
-
-  //     // Очистка гостевых данных
-  //     localStorage.removeItem("guest_files")
-  //   } catch (error) {
-  //     console.error("Migration failed", error)
-  //     // Файлы остаются в гостевом хранилище
-  //   }
-  // }
 }

@@ -1,86 +1,83 @@
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { PiNotePencil } from "react-icons/pi"
 import styles from "./CreateItemModal.module.css"
 import { useFileSystemStore } from "@/store/fileSystemStore"
+import { useLanguagesStore } from "@/store/languagesStore"
 import { validateFilename, validateFoldername } from "@/utils/validators"
+import { useT } from "@/i18n"
 
 interface CreateItemModalProps {
   type: "file" | "folder"
+  folderId?: number | null
   onConfirm: (name: string) => void
   onCancel: () => void
 }
 
 export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   type,
+  folderId = null,
   onConfirm,
   onCancel
 }) => {
+  const t = useT()
   const { items } = useFileSystemStore()
-
-  const [message, setMessage] = useState<{
-    isValid: boolean
-    text: string
-  }>({ isValid: false, text: "" })
-
-  // для папок расширение (ext) всегда = ""
-  const defaultExtension = type === "file" ? ".py" : ""
-
+  const languages = useLanguagesStore((s) => s.languages)
+  const [message, setMessage] = useState({ isValid: false, text: "" })
   const [displayValue, setDisplayValue] = useState("")
-  const [extension, setExtension] = useState(defaultExtension)
-  const inputRef = useRef<HTMLInputElement>(null)
+  // для папки расширения нет
+  const [extension, setExtension] = useState(
+    type === "file" ? `.${languages[0]?.extensions[0] ?? "py"}` : ""
+  )
 
-  // разделение имени файла и расширения (ext) (для папок ext = "")
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const name = e.target.value
-    const fullName = e.target.value + extension
-
-    setDisplayValue(name)
-
-    const validationResult =
+  const validate = (name: string, ext: string) => {
+    const result =
       type === "file" ? validateFilename(name) : validateFoldername(name)
+    if (!result.isValid) return result
+    const fullName = type === "file" ? name + ext : name.trim()
+    // имена уникальны в пределах папки (у папок — среди папок)
+    const taken = items.some((item) =>
+      type === "file"
+        ? item.type === "file" &&
+          item.folder === folderId &&
+          item.name === fullName
+        : item.type === "folder" && item.name === fullName
+    )
+    return taken ? { isValid: false, text: t("validation.nameTaken") } : result
+  }
 
-    const isAvailable = !items.some((item) => item.name === fullName)
-
-    if (!validationResult.isValid) {
-      setMessage(validationResult)
-      return
-    }
-
-    if (!isAvailable) {
-      setMessage({
-        isValid: false,
-        text: ` A ${type} with this name already exists.`
-      })
-      return
-    }
-
-    setMessage(validationResult)
+  const handleChange = (name: string) => {
+    setDisplayValue(name)
+    setMessage(validate(name, extension))
   }
 
   const handleConfirm = () => {
-    // для файла добавляем расширение
-    if (message.isValid) {
-      onConfirm(displayValue + extension)
-    }
+    if (message.isValid)
+      onConfirm(
+        type === "file" ? displayValue + extension : displayValue.trim()
+      )
   }
 
   return (
     <div className={styles.content}>
-      <p>Creating {type}</p>
+      <p>
+        {t(type === "file" ? "files.creating.file" : "files.creating.folder")}
+      </p>
       <div className={styles.inputContainer}>
         <Input
           autoFocus={true}
           autoComplete='off'
           name='file-name'
-          ref={inputRef}
-          placeholder={`Enter ${type}name ${type === "file" ? "without extension" : ""}`}
+          placeholder={t(
+            type === "file"
+              ? "files.namePlaceholder.file"
+              : "files.namePlaceholder.folder"
+          )}
           icon={<PiNotePencil />}
           value={displayValue}
           message={message}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e.target.value)}
           className={styles.input}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleConfirm()
@@ -89,14 +86,17 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
         {type === "file" && (
           <select
             className={styles.selectExt}
-            onChange={(e) => setExtension(e.target.value)}
+            onChange={(e) => {
+              setExtension(e.target.value)
+              setMessage(validate(displayValue, e.target.value))
+            }}
             value={extension}
           >
-            <option value='.py'>Python</option>
-            <option value='.go'>Golang</option>
-            <option value='.java'>Java</option>
-            <option value='.cpp'>C++</option>
-            <option value='.js'>JavaScript</option>
+            {languages.map((lang) => (
+              <option key={lang.id} value={`.${lang.extensions[0]}`}>
+                {lang.name}
+              </option>
+            ))}
           </select>
         )}
       </div>
@@ -106,10 +106,10 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
           disabled={!message.isValid}
           onClick={handleConfirm}
         >
-          OK
+          {t("common.ok")}
         </Button>
         <Button variant='secondary' onClick={onCancel}>
-          Cancel
+          {t("common.cancel")}
         </Button>
       </div>
     </div>

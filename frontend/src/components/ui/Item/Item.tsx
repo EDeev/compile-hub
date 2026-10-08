@@ -4,7 +4,7 @@ import {
   type MenuItem
 } from "@/components/ui/DropdownMenu/DropdownMenu"
 import { useFileActions } from "@/hooks/useFileActions"
-import { type ItemProps, type Item as FileSystemItem } from "@/types/fileSystem" 
+import { type ItemProps, type Item as FileSystemItem } from "@/types/fileSystem"
 import styles from "./Item.module.css"
 import { timeAgo } from "@/utils/timeAgo"
 import {
@@ -15,7 +15,8 @@ import {
   MdArrowForward
 } from "react-icons/md"
 
-import { Icons } from "@/utils/icons"
+import { Icons, fileIcon } from "@/utils/icons"
+import { useT } from "@/i18n"
 import { useClickDragStore } from "@/store/clickDragStore"
 
 export const Item: React.FC<ItemProps> = ({
@@ -23,6 +24,7 @@ export const Item: React.FC<ItemProps> = ({
   name,
   type,
   folder,
+  language,
   size,
   modified,
   className = "",
@@ -32,7 +34,9 @@ export const Item: React.FC<ItemProps> = ({
   isDragMode = false,
   canDropHere = false
 }) => {
-  const { handleRename, handleDelete, handleShowInfo } = useFileActions()
+  const t = useT()
+  const { handleRename, handleDelete, handleShowInfo, handleDownload } =
+    useFileActions()
 
   const { selectForMove } = useClickDragStore()
 
@@ -40,19 +44,10 @@ export const Item: React.FC<ItemProps> = ({
 
   // Блокировка скролла при открытом меню
   useEffect(() => {
-    if (!fileListRef?.current) return
-
-    if (isMenuOpen) {
-      fileListRef.current.classList.add(styles.noScroll)
-    } else {
-      fileListRef.current.classList.remove(styles.noScroll)
-    }
-
-    return () => {
-      if (fileListRef?.current) {
-        fileListRef.current.classList.remove(styles.noScroll)
-      }
-    }
+    const list = fileListRef?.current
+    if (!list) return
+    list.classList.toggle(styles.noScroll, isMenuOpen)
+    return () => list.classList.remove(styles.noScroll)
   }, [isMenuOpen, fileListRef])
 
   const currentItem: FileSystemItem =
@@ -63,7 +58,8 @@ export const Item: React.FC<ItemProps> = ({
           size,
           modified,
           type: "file",
-          folder: folder ?? null // гарантируем, что folder точно есть
+          folder: folder ?? null, // гарантируем, что folder точно есть
+          language
         }
       : {
           id,
@@ -79,7 +75,7 @@ export const Item: React.FC<ItemProps> = ({
     const menuItems: MenuItem[] = [
       {
         id: "rename",
-        label: "Переименовать",
+        label: t("files.rename"),
         icon: <MdOutlineDriveFileRenameOutline />,
         onClick: () => handleRename(currentItem)
       }
@@ -89,7 +85,7 @@ export const Item: React.FC<ItemProps> = ({
       menuItems.push(
         {
           id: "move",
-          label: "Переместить",
+          label: t("files.move"),
           icon: <MdArrowForward />,
           onClick: () => {
             fileListRef?.current.scrollTo({ top: 0, behavior: "smooth" })
@@ -98,9 +94,10 @@ export const Item: React.FC<ItemProps> = ({
         },
         {
           id: "download",
-          label: "Скачать",
+          label: t("files.download"),
           icon: <MdDownload />,
-          onClick: () => console.log("тут будет загрузка")
+          onClick: () =>
+            currentItem.type === "file" && handleDownload(currentItem)
         }
       )
     }
@@ -115,7 +112,7 @@ export const Item: React.FC<ItemProps> = ({
       },
       {
         id: "delete",
-        label: "Удалить",
+        label: t("files.delete"),
         icon: <MdDeleteOutline />,
         onClick: () => handleDelete(currentItem),
         destructive: true
@@ -129,7 +126,7 @@ export const Item: React.FC<ItemProps> = ({
       },
       {
         id: "info",
-        label: "Свойства",
+        label: t("files.properties"),
         icon: <MdInfoOutline />,
         onClick: () => handleShowInfo(currentItem)
       }
@@ -149,27 +146,13 @@ export const Item: React.FC<ItemProps> = ({
     .filter(Boolean)
     .join(" ")
 
-  const setFileIcon = (ext: string) => {
-    switch (ext) {
-      case "py":
-        return <img src={Icons.pythonIcon} />
-      case "go":
-        return <img src={Icons.goIcon} />
-      case "java":
-        return <img src={Icons.javaIcon} />
-      case "cpp":
-        return <img src={Icons.cppIcon} />
-      case "js":
-        return <img src={Icons.jsIcon} />
-    }
-  }
   return (
     <div className={itemClasses} onClick={() => onClick?.()}>
       <span className={styles.icon}>
         {type === "folder" ? (
           <img src={Icons.folderIcon} />
         ) : (
-          setFileIcon(name.split(".").reverse()[0])
+          fileIcon(name.split(".").reverse()[0].toLowerCase())
         )}
       </span>
 
@@ -186,7 +169,7 @@ export const Item: React.FC<ItemProps> = ({
 
       {isSelected && <div className={styles.selectedBadge}>✂️</div>}
       {isDragMode && canDropHere && (
-        <div className={styles.dropHint}>Move here</div>
+        <div className={styles.dropHint}>{t("files.moveHere")}</div>
       )}
 
       {!isDragMode && (

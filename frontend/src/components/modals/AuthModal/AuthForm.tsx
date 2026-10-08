@@ -3,12 +3,18 @@ import { Button } from "@/components/ui/Button"
 import { MdLockOutline, MdMailOutline, MdPersonOutline } from "react-icons/md"
 import { CgSpinner } from "react-icons/cg"
 import styles from "./AuthModal.module.css"
+import { useT } from "@/i18n"
 
 interface AuthFormProps {
   mode: "login" | "register"
   isLoading: boolean
   isValidating: boolean
-  errors: any
+  errors: {
+    username: { isAvialable: boolean; message: string }
+    email: string
+    password: string
+    confirmPassword: string
+  }
   values: {
     username: string
     email: string
@@ -37,22 +43,30 @@ export const AuthForm: React.FC<AuthFormProps> = ({
   onToggleMode,
   statusMessage
 }) => {
+  const t = useT()
   return (
-    <div className={styles.authForm}>
+    <div
+      className={styles.authForm}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && !isLoading) onSubmit()
+      }}
+    >
       <Input
         type='text'
         autoFocus
-        className={`${errors.username.isAvialable ? "success" : "error"} ${styles.input}`}
+        className={`${mode === "register" ? (errors.username.isAvialable ? "success" : "error") : ""} ${styles.input}`}
         isRequired
         isValidating={isValidating}
         icon={<MdPersonOutline />}
-        placeholder='Enter username'
+        placeholder={t(
+          mode === "login" ? "auth.usernameOrEmail" : "auth.username"
+        )}
         disabled={isLoading}
         value={values.username}
         onChange={(e) => onChange.username(e.target.value)}
         message={{
           isValid: errors.username.isAvialable,
-          text: errors.username.message
+          text: mode === "register" ? errors.username.message : ""
         }}
         name='username'
       />
@@ -62,7 +76,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           className={styles.input}
           isRequired
           icon={<MdMailOutline />}
-          placeholder='Enter email'
+          placeholder={t("auth.email")}
           disabled={isLoading}
           value={values.email}
           onChange={(e) => onChange.email(e.target.value)}
@@ -75,7 +89,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
         className={styles.input}
         isRequired
         icon={<MdLockOutline />}
-        placeholder='Enter password'
+        placeholder={t("auth.password")}
         disabled={isLoading}
         value={values.password}
         onChange={(e) => onChange.password(e.target.value)}
@@ -88,7 +102,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           className={styles.input}
           isRequired
           icon={<MdLockOutline />}
-          placeholder='Confirm password'
+          placeholder={t("auth.confirmPassword")}
           disabled={isLoading}
           value={values.confirmPassword}
           onChange={(e) => onChange.confirmPassword(e.target.value)}
@@ -111,7 +125,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           {isLoading && mode === "login" ? (
             <CgSpinner size={25} className={styles.buttonLoadSpinner} />
           ) : (
-            "Log In"
+            t("auth.login")
           )}
         </Button>
         <Button
@@ -127,7 +141,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           {isLoading && mode === "register" ? (
             <CgSpinner size={25} className={styles.buttonLoadSpinner} />
           ) : (
-            "Sign Up"
+            t("auth.signup")
           )}
         </Button>
       </div>

@@ -1,22 +1,49 @@
+import { useLanguagesStore } from "@/store/languagesStore"
+import { useT } from "@/i18n"
 import styles from "./AboutTab.module.css"
 
 export const AboutTab = () => {
+  const t = useT()
+  const languages = useLanguagesStore((s) => s.languages)
   return (
     <div className={styles.mainContainer}>
-      <h3>About us</h3>
-      <p>
-        CompileHub - it's a simple and easy way to compile your code using
-        web-browser (отредачить)
-      </p>
-      <p>Supported languages:</p>
+      <h3>{t("settings.aboutTitle")}</h3>
+      <p>{t("settings.aboutText")}</p>
+      <p>{t("settings.languages")}:</p>
       <ul>
-        <li>Python</li>
-        <li>Java</li>
-        <li>Golang</li>
-        <li>JavaScript</li>
-        <li>C++</li>
+        {languages.map((lang) => (
+          <li key={lang.id}>
+            {lang.name}
+            {lang.version ? ` ${lang.version}` : ""}
+            {!lang.enabled ? " —" : ""}
+          </li>
+        ))}
       </ul>
-      <p>Authors: Petr Saprykin, Egor Deev</p>
+      <p>{t("settings.authors")}:</p>
+      <ul>
+        <li>
+          <a
+            className='link'
+            href='https://github.com/PetrSaprykin'
+            target='_blank'
+            rel='noreferrer'
+          >
+            Petr Saprykin
+          </a>{" "}
+          — {t("settings.design")}
+        </li>
+        <li>
+          <a
+            className='link'
+            href='https://github.com/EDeev'
+            target='_blank'
+            rel='noreferrer'
+          >
+            Egor Deev
+          </a>{" "}
+          — {t("settings.backend")}
+        </li>
+      </ul>
     </div>
   )
 }

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { PiNotePencil } from "react-icons/pi"
 import styles from "./RenameModal.module.css"
 import { useFileSystemStore } from "@/store/fileSystemStore"
 import { validateFilename, validateFoldername } from "@/utils/validators"
+import { useT } from "@/i18n"
 
 interface RenameModalProps {
   type: "file" | "folder"
@@ -13,82 +14,64 @@ interface RenameModalProps {
   onCancel: () => void
 }
 
+const split = (name: string, type: "file" | "folder") => {
+  const dot = name.lastIndexOf(".")
+  return type === "file" && dot > 0
+    ? [name.slice(0, dot), name.slice(dot)]
+    : [name, ""]
+}
+
 export const RenameModal: React.FC<RenameModalProps> = ({
   type,
   initialName,
   onConfirm,
   onCancel
 }) => {
+  const t = useT()
   const { items } = useFileSystemStore()
+  const [base, extension] = split(initialName, type)
+  const [displayValue, setDisplayValue] = useState(base)
+  const [message, setMessage] = useState({ isValid: false, text: "" })
+  const current = items.find((i) => i.name === initialName && i.type === type)
+  const folder = current?.type === "file" ? current.folder : null
 
-  const [message, setMessage] = useState<{
-    isValid: boolean
-    text: string
-  }>({ isValid: false, text: "" })
-
-  const [displayValue, setDisplayValue] = useState("")
-  const [extension, setExtension] = useState("")
-
-  // разделение имени файла и расширения (ext) (для папок ext = "")
-  useEffect(() => {
-    const lastDotIndex = initialName.lastIndexOf(".")
-    if (lastDotIndex > 0) {
-      setExtension(initialName.substring(lastDotIndex))
-      setDisplayValue(initialName.substring(0, lastDotIndex))
-    } else {
-      setExtension("")
-      setDisplayValue(initialName)
-    }
-  }, [initialName])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newBaseName = e.target.value
-    const newFullName = newBaseName + extension
-
-    setDisplayValue(newBaseName)
-
-    const validationResult =
-      type === "file"
-        ? validateFilename(newBaseName)
-        : validateFoldername(newBaseName)
-
-    const isAvailable = !items.some((item) => item.name === newFullName)
-
-    if (!validationResult.isValid) {
-      setMessage(validationResult)
-      return
-    }
-
-    if (!isAvailable) {
-      setMessage({
-        isValid: false,
-        text: ` A ${type} with this name already exists.`
-      })
-      return
-    }
-
-    setMessage(validationResult)
+  const handleChange = (value: string) => {
+    setDisplayValue(value)
+    const result =
+      type === "file" ? validateFilename(value) : validateFoldername(value)
+    const fullName = type === "file" ? value + extension : value.trim()
+    const taken = items.some(
+      (i) =>
+        i !== current &&
+        i.type === type &&
+        i.name === fullName &&
+        (type === "folder" || (i.type === "file" && i.folder === folder))
+    )
+    setMessage(
+      result.isValid && taken
+        ? { isValid: false, text: t("validation.nameTaken") }
+        : result
+    )
   }
 
   const handleConfirm = () => {
-    if (message.isValid) {
-      onConfirm(displayValue + extension)
-    }
+    if (message.isValid)
+      onConfirm(
+        type === "file" ? displayValue + extension : displayValue.trim()
+      )
   }
 
   return (
     <div className={styles.content}>
-      <p>
-        Renaming {type} {initialName}
-      </p>
+      <p>{t("files.renaming", { name: initialName })}</p>
       <div className={styles.inputContainer}>
         <Input
           autoFocus={true}
-          placeholder='Enter new filename'
+          placeholder={t("files.newName")}
           icon={<PiNotePencil />}
           value={displayValue}
           message={message}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e.target.value)}
           className={styles.input}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleConfirm()
@@ -104,10 +87,10 @@ export const RenameModal: React.FC<RenameModalProps> = ({
           disabled={!message.isValid}
           onClick={handleConfirm}
         >
-          OK
+          {t("common.ok")}
         </Button>
         <Button variant='secondary' onClick={onCancel}>
-          Cancel
+          {t("common.cancel")}
         </Button>
       </div>
     </div>

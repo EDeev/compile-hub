@@ -18,9 +18,10 @@ export const useFileNavigation = (folders: FolderItem[]) => {
     setNavigationHistory((prev) => prev.slice(0, -1))
   }
 
-  const getCurrentFolderName = () => {
-    if (currentFolder === null) return "Home"
-    return folders.find((f) => f.id === currentFolder)?.name || "Unknown folder"
+  // null — корень (подпись даёт компонент на языке интерфейса)
+  const getCurrentFolderName = (): string | null => {
+    if (currentFolder === null) return null
+    return folders.find((f) => f.id === currentFolder)?.name ?? null
   }
 
   return {

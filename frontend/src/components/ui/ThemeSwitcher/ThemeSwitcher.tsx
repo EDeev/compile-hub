@@ -2,9 +2,9 @@ import { MdNightlightRound, MdLightMode } from "react-icons/md"
 import { useThemeStore } from "@/store/themeStore"
 import styles from "./ThemeSwitcher.module.css"
 import { useState } from "react"
+import { AuthService } from "@/services/authService"
 
-/* prettier-ignore */
-interface ThemeSwitcherProps extends React.HTMLAttributes<HTMLSpanElement> {}
+type ThemeSwitcherProps = React.HTMLAttributes<HTMLSpanElement>
 
 export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
   const { theme, toggleTheme } = useThemeStore()
@@ -16,6 +16,9 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
     setIsAnimating(true)
     setTimeout(() => {
       toggleTheme()
+      AuthService.saveSettings({ theme: useThemeStore.getState().theme }).catch(
+        () => {}
+      )
       setIsAnimating(false)
     }, 400) // должно быть = fade в css-файле
   }

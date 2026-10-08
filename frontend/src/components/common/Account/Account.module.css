@@ -1,0 +1,9 @@
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+.username {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+}

@@ -4,7 +4,7 @@ import styles from "./Filebar.module.css"
 import { useClickDragStore } from "@/store/clickDragStore"
 import { useFileNavigation } from "@/hooks/useFileNavigation"
 import { MdSearch, MdChevronRight, MdChevronLeft } from "react-icons/md"
-import { useEffect, useRef, useState, useMemo } from "react"
+import { useRef, useState, useMemo } from "react"
 import { IoArrowBack } from "react-icons/io5"
 import { Item } from "@/components/ui/Item"
 import { useFileActions } from "@/hooks/useFileActions"
@@ -17,28 +17,16 @@ import { useFileFilter } from "@/hooks/useFileFilter"
 import { useFileSystemStore } from "@/store/fileSystemStore"
 import { useEditorState } from "@/store/editorStore"
 import { CgSpinner } from "react-icons/cg"
-import { useUserStore } from "@/store/userStore"
+import { useT } from "@/i18n"
 
 export const Filebar = () => {
   const [isFilebarOpen, setFilebarOpen] = useState(true)
   const [searchText, setSearchText] = useState("")
   const fileListRef = useRef<HTMLDivElement>(null!)
 
-  // получение файлов отдельным хуком
-  const { currentUser } = useUserStore()
-  const { loadItems, items, isLoading } = useFileSystemStore()
-
-  // отладка
-  useEffect(
-    () => console.log(`Текущий пользователь: ${currentUser.username}`),
-    []
-  )
-
-  useEffect(() => {
-    if (currentUser?.id && items.length === 0) {
-      loadItems(currentUser.id) // Загружаем, если файлов нет
-    }
-  }, [currentUser?.id, loadItems, items.length])
+  const t = useT()
+  // файлы грузит AuthService при входе и восстановлении сессии, у гостя — localStorage
+  const { items, isLoading } = useFileSystemStore()
 
   const folders = useMemo(
     () => items.filter((item): item is FolderItem => item.type === "folder"),
@@ -54,7 +42,7 @@ export const Filebar = () => {
     getCurrentFolderName
   } = useFileNavigation(folders)
 
-  const { setFile } = useEditorState()
+  const { openFile } = useEditorState()
 
   // пермещение файлов отдельным хуков
   const { isDragMode, cancelMove, isSelected, selectedItem } =
@@ -65,10 +53,10 @@ export const Filebar = () => {
   // обработчик клика по папке
   const handleClick = (item: ItemProps) => {
     if (item.type === "folder") {
-      isDragMode ? handleMove(selectedItem, item.id) : goToFolder(item.id)
+      if (isDragMode) handleMove(selectedItem, item.id)
+      else goToFolder(item.id)
     } else if (!isDragMode) {
-      console.log("открытие файла")
-      setFile(item as FileItem) // fix it
+      openFile(item as FileItem)
     }
   }
 
@@ -89,7 +77,7 @@ export const Filebar = () => {
         {/* Поиск */}
         <Input
           icon={<MdSearch />}
-          placeholder='Searching files...'
+          placeholder={t("files.search")}
           className={styles.search}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
@@ -109,7 +97,7 @@ export const Filebar = () => {
                 <IoArrowBack size={20} />
               </button>
               <span className={styles.currentPath}>
-                {getCurrentFolderName()}
+                {getCurrentFolderName() ?? t("files.home")}
               </span>
             </>
           ) : (
@@ -119,13 +107,13 @@ export const Filebar = () => {
                 onClick={handleMoveToRoot}
                 className={`${styles.moveToRootButton} ${styles.actionButton}`}
               >
-                Move to home
+                {t("files.moveHome")}
               </button>
               <button
                 onClick={cancelMove}
                 className={`${styles.cancelButton} ${styles.actionButton}`}
               >
-                Cancel
+                {t("files.cancel")}
               </button>
             </div>
           )}
@@ -155,11 +143,11 @@ export const Filebar = () => {
             ))
           ) : (
             <span className={styles.searchError}>
-              {currentUser.isGuest && items.length === 0
-                ? "You can click the buttons below to create your first file or folder"
+              {items.length === 0
+                ? t("files.firstHint")
                 : searchText
-                  ? `File "${searchText}" not found`
-                  : "This directory is empty"}
+                  ? t("files.notFound", { name: searchText })
+                  : t("files.empty")}
             </span>
           )}
         </div>
@@ -172,11 +160,11 @@ export const Filebar = () => {
             variant='secondary'
             onClick={() => handleCreate("file", currentFolder)}
           >
-            New file
+            {t("files.newFile")}
           </Button>
           {currentFolder === null && (
             <Button variant='secondary' onClick={() => handleCreate("folder")}>
-              New folder
+              {t("files.newFolder")}
             </Button>
           )}
         </div>

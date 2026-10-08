@@ -1,13 +1,14 @@
-  export interface BaseItem {
-    id: number
-    name: string
-    size?: string
-    modified?: string
-  }
+export interface BaseItem {
+  id: number
+  name: string
+  size?: string
+  modified?: string
+}
 
 export interface FileItem extends BaseItem {
   type: "file"
   folder: number | null
+  language?: string
 }
 
 export interface FolderItem extends BaseItem {
@@ -21,6 +22,7 @@ export interface ItemProps {
   name: string
   type: "file" | "folder"
   folder?: number | null
+  language?: string
   size?: string
   modified?: string
   className?: string

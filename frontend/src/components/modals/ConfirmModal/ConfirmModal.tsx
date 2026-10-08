@@ -1,6 +1,7 @@
 import { useModalStore } from "@/store/modalStore"
 import styles from "./ConfirmModal.module.css"
 import { Button } from "@/components/ui/Button"
+import { useT } from "@/i18n"
 
 interface ConfirmModalProps {
   title: string
@@ -19,6 +20,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onCancel
 }) => {
   const { closeModal } = useModalStore()
+  const t = useT()
 
   return (
     <div className={styles.content}>
@@ -32,7 +34,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             closeModal()
           }}
         >
-          OK
+          {t("common.ok")}
         </Button>
         <Button
           variant='secondary'
@@ -40,7 +42,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             onCancel()
           }}
         >
-          Cancel
+          {t("common.cancel")}
         </Button>
       </div>
     </div>

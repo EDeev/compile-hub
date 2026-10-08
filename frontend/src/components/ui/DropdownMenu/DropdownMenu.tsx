@@ -42,6 +42,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
 
   useEffect(() => {
     onOpenChange?.(isOpen)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- сообщаем только о смене isOpen, колбэк родителя не мемоизирован
   }, [isOpen])
 
   // вычисляем позицию меню относительно триггера
@@ -112,6 +113,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
         window.removeEventListener("resize", handleResize)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- calculatePosition пересоздаётся каждый рендер
   }, [isOpen])
 
   // закрытие при клике вне компонента

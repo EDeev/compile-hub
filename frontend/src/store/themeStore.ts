@@ -1,10 +1,13 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
+type Theme = "light" | "dark"
+
 type ThemeState = {
-  theme: "light" | "dark"
+  theme: Theme
   toggleTheme: () => void
-  _applyThemeToDOM: (theme: "light" | "dark") => void
+  setTheme: (theme: Theme) => void
+  _applyThemeToDOM: (theme: Theme) => void
 }
 
 export const useThemeStore = create<ThemeState>()(
@@ -12,10 +15,11 @@ export const useThemeStore = create<ThemeState>()(
     (set, get) => ({
       theme: "dark",
 
-      toggleTheme: () => {
-        const newTheme = get().theme === "light" ? "dark" : "light"
-        get()._applyThemeToDOM(newTheme)
-        set({ theme: newTheme })
+      toggleTheme: () => get().setTheme(get().theme === "light" ? "dark" : "light"),
+
+      setTheme: (theme) => {
+        get()._applyThemeToDOM(theme)
+        set({ theme })
       },
 
       _applyThemeToDOM: (theme) => {

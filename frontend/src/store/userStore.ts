@@ -1,58 +1,34 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
 import { type User } from "@/types"
 import { GUEST_USER } from "@/types/userTypes"
+import type { ApiUser } from "@/api/types"
 
 interface UserStore {
   currentUser: User
   isAuthenticated: boolean
-  login: (userData: User) => void
+  /** true, пока при запуске приложения восстанавливается сессия по refresh-cookie */
+  isRestoring: boolean
+  login: (user: ApiUser) => void
   logout: () => void
-  updateUser: (userData: Partial<User>) => void
+  setRestoring: (value: boolean) => void
 }
 
-export const useUserStore = create<UserStore>()(
-  persist(
-    (set) => ({
-      currentUser: GUEST_USER,
-      isAuthenticated: false,
+export const toUser = (user: ApiUser): User => ({
+  id: String(user.id),
+  email: user.email,
+  username: user.username,
+  isGuest: false,
+  emailVerified: user.emailVerified,
+  limits: user.limits,
+  usage: user.usage
+})
 
-      login: (userData) =>
-        set({
-          currentUser: userData,
-          isAuthenticated: true
-        }),
-
-      logout: () =>
-        set({
-          currentUser: GUEST_USER,
-          isAuthenticated: false
-        }),
-
-      updateUser: (userData) =>
-        set((state) => ({
-          currentUser: { ...state.currentUser, ...userData }
-        }))
-    }),
-    {
-      name: "user-storage",
-      partialize: (state) => ({
-        currentUser: state.currentUser.isGuest ? null : state.currentUser,
-        isAuthenticated: state.isAuthenticated
-      }),
-      onRehydrateStorage: () => (state, error) => {
-        if (error) {
-          console.error("Error during rehydration:", error)
-          return
-        }
-
-        if (!state?.currentUser) {
-          return {
-            currentUser: GUEST_USER,
-            isAuthenticated: false
-          }
-        }
-      }
-    }
-  )
-)
+// сессия живёт в httpOnly refresh-cookie, поэтому пользователя в localStorage не храним
+export const useUserStore = create<UserStore>((set) => ({
+  currentUser: GUEST_USER,
+  isAuthenticated: false,
+  isRestoring: true,
+  login: (user) => set({ currentUser: toUser(user), isAuthenticated: true }),
+  logout: () => set({ currentUser: GUEST_USER, isAuthenticated: false }),
+  setRestoring: (value) => set({ isRestoring: value })
+}))

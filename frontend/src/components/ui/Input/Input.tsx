@@ -8,14 +8,14 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   isValidating?: boolean
   icon?: React.ReactNode
   message?: { isValid: boolean; text: string }
-  hidePassDeps?: any[]
+  hidePassDeps?: unknown[]
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
       icon,
-      isRequired = false,
+      isRequired: _isRequired = false,
       isValidating = false,
       message,
       hidePassDeps = [],
@@ -33,9 +33,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     useEffect(() => {
       setShowPass(false)
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- зависимости задаёт вызывающий компонент
     }, hidePassDeps)
 
-    let showPasswordIcon = showPass ? (
+    const showPasswordIcon = showPass ? (
       <IoEyeOffOutline {...showPassIconProps} />
     ) : (
       <IoEyeOutline {...showPassIconProps} />

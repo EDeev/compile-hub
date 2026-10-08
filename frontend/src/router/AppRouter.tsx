@@ -1,12 +1,12 @@
 // src/router/AppRouter.tsx
-import { type RouteObject, useRoutes } from 'react-router-dom'
-import { routeConfig } from './routes'
+import { type RouteObject, useRoutes } from "react-router-dom"
+import { routeConfig } from "./routes"
 
 export function AppRouter() {
   // Преобразуем нашу конфигурацию в формат, понятный React Router
   const routes: RouteObject[] = routeConfig.map(({ path, element }) => ({
     path,
-    element,
+    element
   }))
 
   // useRoutes - хук React Router для создания маршрутов

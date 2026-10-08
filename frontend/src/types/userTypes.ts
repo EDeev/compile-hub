@@ -1,15 +1,21 @@
+import type { Limits, Usage } from "@/api/types"
+
 export interface User {
-  id: string | "guest"
+  id: string
   email: string | null
   username: string
-  token: string | null
   isGuest: boolean
+  emailVerified: boolean
+  limits: Limits | null
+  usage: Usage | null
 }
 
 export const GUEST_USER: User = {
   id: "guest_user",
   email: null,
   username: "Гость",
-  token: null,
-  isGuest: true
+  isGuest: true,
+  emailVerified: false,
+  limits: null,
+  usage: null
 }

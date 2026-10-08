@@ -8,7 +8,7 @@ export const VALIDATION_RULES = {
     MIN_LENGTH: 8,
     MAX_LENGTH: 32,
     PATTERNS: {
-      LATIN_ONLY: /^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/,
+      LATIN_ONLY: /^[A-Za-z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
       UPPERCASE: /[A-Z]/,
       LOWERCASE: /[a-z]/,
       NUMBER: /[0-9]/

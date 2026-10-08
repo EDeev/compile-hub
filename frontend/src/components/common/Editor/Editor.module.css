@@ -112,3 +112,71 @@
 resizeHandle:active {
   background: var(--text-color);
 }
+
+/* доработки: раскладка на всю высоту, поле ввода, статус запуска */
+.editor {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.panelGroup {
+  flex: 1;
+  min-height: 0;
+}
+.codePanel,
+.editorWrapper {
+  height: 100%;
+  position: relative;
+}
+.outputPanel {
+  padding: 0;
+}
+.modified {
+  color: var(--primary);
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+  max-width: 520px;
+}
+.status.ok {
+  color: var(--text-success);
+}
+.status.bad {
+  color: var(--text-error);
+}
+.stdinPanel {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  gap: var(--spacing-xs);
+}
+.stdinLabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+.stdin {
+  flex: 1;
+  resize: none;
+  background: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  outline: none;
+}
+.stdin:focus {
+  border-color: var(--primary);
+}
+.resizeHandleHorizontal {
+  background: var(--border-color);
+  height: 3px;
+  transition: var(--transition-normal);
+}
+.resizeHandleHorizontal:hover {
+  background: var(--text-color);
+}

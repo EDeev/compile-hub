@@ -1,10 +1,10 @@
-// ПЕРЕИМЕНОВАТЬ В authModalStore.ts
-// ВЕСЬ ФАЙЛ - ЭТО ВАЛИДАЦИЯ ОКНА АВТОРИЗАЦИИ, НЕ БОЛЕЕ
-
+// Состояние и проверка полей окна входа/регистрации
 import { create } from "zustand"
 import { createDebouncer } from "@/utils/debouncer"
 import { FormValidators } from "@/utils/validators"
 import { VALIDATION_RULES } from "@/utils/constants"
+import { AuthService } from "@/services/authService"
+import { errorMessage, t } from "@/i18n"
 
 interface AuthState {
   username: string
@@ -20,79 +20,47 @@ interface AuthState {
   isValidating: boolean
   setUsername: (username: string, isReg: boolean) => void
   setEmail: (email: string) => void
-  setPassword: (password: string) => void
+  setPassword: (password: string, isReg: boolean) => void
   setConfirmPassword: (confirmPassword: string) => void
   resetForm: () => void
-  // submitForm: (mode: string) => Promise<[string, boolean]>
   isValid: (mode: string) => boolean
 }
 
+const emptyErrors = () => ({
+  username: { isAvialable: false, message: "" },
+  email: "",
+  password: "",
+  confirmPassword: ""
+})
+
 export const useAuthStore = create<AuthState>((set, get) => {
   const checkUsernameOnServer = async (username: string) => {
-    // проверка если юзер напечатал ещё символы во время проверки на сервере
-    const currentUsername = get().username
-
-    set({ isValidating: true })
-
-    // заглушка запроса на сервер
-
     try {
-      console.log("Отправлен запрос на проверку с юзернеймом " + currentUsername)
-      const response = await fetch(
-        `http://95.31.185.229:9999/api/auth/check-username?username=${username}`,
-        {
-          method: "GET", // Указываем метод
-          headers: {
-            "Content-Type": "application/json"
-          }
-        }
-      )
-
-      const data = await response.json()
-
-      if (!response.ok || !data.available) {
-        set((state) => ({
-          ...state,
-          errors: {
-            ...state.errors,
-            username: {
-              isAvialable: false,
-              message: "HTTP error, try again later"
-            }
-          },
-          isValidating: false
-        }))
-      }
-
-      const isFree = data.available
-
-      if (get().username !== currentUsername) return
-
+      const isFree = await AuthService.checkUsername(username)
+      if (get().username !== username) return // пока ждали ответ, имя изменилось
       set((state) => ({
-        ...state,
         errors: {
           ...state.errors,
           username: {
             isAvialable: isFree,
-            message: isFree
-              ? `Username ${currentUsername} is avialable`
-              : `Username ${currentUsername} is already in use`
+            message: t(isFree ? "auth.usernameFree" : "auth.usernameTaken", { name: username })
           }
         },
         isValidating: false
       }))
     } catch (error) {
-      // Вывести сообщ об ошибке
+      if (get().username !== username) return
+      set((state) => ({
+        errors: { ...state.errors, username: { isAvialable: false, message: errorMessage(error) } },
+        isValidating: false
+      }))
     }
-
-    // вторая проверка после запроса на сервер
   }
-  //   await fetch(`запрос на сервер c username`)
-  //     .then(res => res.json())
-  //     .then(data => data.available);
 
-  const debounceDelay = VALIDATION_RULES.TIMING.DEBOUNCE_DELAY
-  const usernameDebouncer = createDebouncer(checkUsernameOnServer, debounceDelay)
+  const usernameDebouncer = createDebouncer(
+    checkUsernameOnServer,
+    VALIDATION_RULES.TIMING.DEBOUNCE_DELAY
+  )
 
   return {
     username: "",
@@ -100,116 +68,83 @@ export const useAuthStore = create<AuthState>((set, get) => {
     password: "",
     confirmPassword: "",
     isValidating: false,
-    errors: {
-      username: { isAvialable: false, message: "" },
-      email: "",
-      password: "",
-      confirmPassword: ""
-    },
+    errors: emptyErrors(),
 
-    setUsername: (username: string, isReg: boolean) => {
-      const { isValid, text } = FormValidators.validateUsername(username)
-
+    setUsername: (username, isReg) => {
+      // при входе поле принимает имя или почту — формат не проверяем
+      const { isValid, text } = isReg
+        ? FormValidators.validateUsername(username)
+        : { isValid: username.length > 0, text: "" }
       set((state) => ({
         username,
-        errors: {
-          ...state.errors,
-          username: { isAvialable: isValid, message: text }
-        },
-        isValidating: isValid && isReg ? true : false
+        errors: { ...state.errors, username: { isAvialable: isValid, message: text } },
+        isValidating: isValid && isReg
       }))
-
       if (!isValid || !isReg) {
         usernameDebouncer.cancel()
         return
       }
-
       usernameDebouncer.check(username)
     },
 
-    setEmail: (email: string) =>
+    setEmail: (email) =>
       set((state) => ({
         email,
+        errors: { ...state.errors, email: FormValidators.validateEmail(email).text }
+      })),
+
+    setPassword: (password, isReg) =>
+      set((state) => ({
+        password,
         errors: {
           ...state.errors,
-          email: FormValidators.validateEmail(email).text
+          // при входе правила сложности не проверяем — у старых паролей они могли быть другими
+          password: isReg ? FormValidators.validatePassword(password).text : "",
+          confirmPassword:
+            state.confirmPassword && state.confirmPassword !== password
+              ? t("validation.passwordsMismatch")
+              : ""
         }
       })),
 
-    setPassword: (password: string) =>
-      set((state) => {
-        const passwordError = FormValidators.validatePassword(password).text
-        let confirmError = ""
-
-        if (state.confirmPassword && state.confirmPassword !== password) {
-          confirmError = "Passwords don't match"
-        }
-
-        return {
-          password,
-          errors: {
-            ...state.errors,
-            password: passwordError,
-            confirmPassword: confirmError
-          }
-        }
-      }),
-
-    setConfirmPassword: (confirmPassword: string) =>
+    setConfirmPassword: (confirmPassword) =>
       set((state) => ({
         confirmPassword,
         errors: {
           ...state.errors,
-          confirmPassword: state.password !== confirmPassword ? "Passwords don't match" : ""
+          confirmPassword:
+            state.password !== confirmPassword ? t("validation.passwordsMismatch") : ""
         }
       })),
 
     resetForm: () => {
       usernameDebouncer.cancel()
-
       set({
         username: "",
         email: "",
         password: "",
         confirmPassword: "",
         isValidating: false,
-        errors: {
-          username: { isAvialable: true, message: "" },
-          email: "",
-          password: "",
-          confirmPassword: ""
-        }
+        errors: emptyErrors()
       })
     },
-    // submitForm: async (mode: string) => {
-    //   // mode будем передавать на сервер
-    //   await new Promise((resolve) => setTimeout(resolve, 1500))
-    //   return ["You're successfully signed up", false] as [string, boolean] // заглушка
-    // },
 
-    isValid: (mode: string): boolean => {
-      const state = get()
-
+    isValid: (mode) => {
+      const s = get()
       if (mode === "register") {
         return (
-          state.errors.username.isAvialable &&
-          !state.errors.email &&
-          !state.errors.password &&
-          !state.errors.confirmPassword &&
-          !!state.username &&
-          !!state.email &&
-          !!state.password &&
-          !!state.confirmPassword &&
-          !state.isValidating
-        )
-      } else {
-        return (
-          state.errors.username.isAvialable &&
-          !state.errors.password &&
-          !!state.username &&
-          !!state.password
+          s.errors.username.isAvialable &&
+          !s.errors.email &&
+          !s.errors.password &&
+          !s.errors.confirmPassword &&
+          !!s.username &&
+          !!s.email &&
+          !!s.password &&
+          !!s.confirmPassword &&
+          !s.isValidating
         )
       }
+      return !!s.username && !!s.password
     }
   }
 })

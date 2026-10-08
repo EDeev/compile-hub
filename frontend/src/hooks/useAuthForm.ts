@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"
+import { toast } from "react-toastify"
 import { useAuthStore } from "@/store/authStore"
 import { useModalStore } from "@/store/modalStore"
 import { AuthService } from "@/services/authService"
+import { errorMessage, t } from "@/i18n"
 
 export const useAuthForm = (initialMode: "login" | "register") => {
   const [mode, setMode] = useState<"login" | "register">(initialMode)
@@ -11,42 +13,32 @@ export const useAuthForm = (initialMode: "login" | "register") => {
     isSuccess: true
   })
 
-  const {
-    username,
-    email,
-    password,
-    confirmPassword,
-    errors,
-    isValidating,
-    setUsername,
-    setEmail,
-    setPassword,
-    setConfirmPassword,
-    resetForm,
-    isValid
-  } = useAuthStore()
-
-  const { setIsLocked } = useModalStore()
+  const store = useAuthStore()
+  const { setIsLocked, closeModal } = useModalStore()
 
   useEffect(() => {
-    resetForm()
+    store.resetForm()
     setStatusMessage({ text: "", isSuccess: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode])
 
   const handleSubmit = async () => {
-    if (!isValid(mode)) return
-
+    if (!store.isValid(mode)) return
     setIsLocked(true)
     setIsLoading(true)
     try {
-      const result =
-        mode === "login"
-          ? await AuthService.login({ username, password })
-          : await AuthService.register({ username, email, password })
-
-      const [text, success]: [string, boolean] = result
-      if (success) resetForm()
-      setStatusMessage({ text, isSuccess: success })
+      if (mode === "login") {
+        await AuthService.login(store.username, store.password)
+        toast.success(t("auth.loggedIn"))
+      } else {
+        await AuthService.register(store.username, store.email, store.password)
+        toast.success(t("auth.registered"), { autoClose: 8000 })
+      }
+      store.resetForm()
+      setIsLocked(false)
+      closeModal()
+    } catch (error) {
+      setStatusMessage({ text: errorMessage(error), isSuccess: false })
     } finally {
       setIsLoading(false)
       setIsLocked(false)
@@ -57,17 +49,17 @@ export const useAuthForm = (initialMode: "login" | "register") => {
     mode,
     setMode,
     isLoading,
-    isValidating,
+    isValidating: store.isValidating,
     statusMessage,
-    username,
-    email,
-    password,
-    confirmPassword,
-    errors,
-    setUsername,
-    setEmail,
-    setPassword,
-    setConfirmPassword,
+    username: store.username,
+    email: store.email,
+    password: store.password,
+    confirmPassword: store.confirmPassword,
+    errors: store.errors,
+    setUsername: store.setUsername,
+    setEmail: store.setEmail,
+    setPassword: store.setPassword,
+    setConfirmPassword: store.setConfirmPassword,
     handleSubmit
   }
 }
