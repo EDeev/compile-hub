@@ -49,6 +49,7 @@ class ExecLimits:
     output_bytes: int
     idle_ms: int | None = None
     pids: int = 64
+    nofile: int = 64
     fsize_mb: int = 16
     tmp_mb: int = 16
 
@@ -160,7 +161,7 @@ def nsjail_argv(
         "--rlimit_cpu", str(-(-limits.cpu_ms // 1000) + 1),
         "--rlimit_as", "inf",  # память — через cgroup: виртуальные резервы JVM/Go/V8 не мешают
         "--rlimit_fsize", str(limits.fsize_mb),
-        "--rlimit_nofile", "64",
+        "--rlimit_nofile", str(limits.nofile),
         "--rlimit_core", "0",
         "--rlimit_stack", "64",
         "--seccomp_string", SECCOMP,
