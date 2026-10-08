@@ -61,7 +61,10 @@ def detect_versions(languages: tuple[str, ...]) -> dict[str, str]:
 class Worker:
     def __init__(self, config: Config) -> None:
         self.config = config
-        self.redis = Redis.from_url(config.redis_url, decode_responses=True, health_check_interval=30)
+        # таймаут сокета больше любого BLOCK в XREAD/XREADGROUP
+        self.redis = Redis.from_url(
+            config.redis_url, decode_responses=True, health_check_interval=30, socket_timeout=30
+        )
         self.cgroups = Cgroups(config.cgroup_root)
         self.thermal = Thermal(config.temp_sensor, config.pause_at, config.resume_at)
         self.versions: dict[str, str] = {}

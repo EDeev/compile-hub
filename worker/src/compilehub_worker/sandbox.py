@@ -114,10 +114,6 @@ class Cgroups:
         return 0
 
     @staticmethod
-    def memory(cg: Path) -> int:
-        return int((cg / "memory.current").read_text())
-
-    @staticmethod
     def oom_killed(cg: Path) -> bool:
         for line in (cg / "memory.events").read_text().splitlines():
             if line.startswith("oom_kill "):
@@ -298,13 +294,10 @@ async def execute(
                 await on_output(name, text)
 
     async def watch() -> None:
-        peak = 0
         while True:
             await asyncio.sleep(POLL)
             now = time.monotonic()
             with contextlib.suppress(OSError):
-                peak = max(peak, Cgroups.memory(cg))
-                result.memory_kb = max(result.memory_kb, peak // 1024)
                 if Cgroups.cpu_usec(cg) > limits.cpu_ms * 1000:
                     stop("timed_out")
             if (now - started) * 1000 > limits.wall_ms:
@@ -339,7 +332,9 @@ async def execute(
     with contextlib.suppress(OSError):
         result.cpu_ms = Cgroups.cpu_usec(cg) // 1000
         result.oom = Cgroups.oom_killed(cg)
-    result.memory_kb = max(result.memory_kb, rusage.ru_maxrss)  # ru_maxrss — КБ, максимум по дереву
+    # пользователю — пиковый RSS процесса (как в системах проверки задач); memory.current группы включает
+    # страничный кэш библиотек и годится только для лимита
+    result.memory_kb = rusage.ru_maxrss  # КБ, максимум по дереву процессов
     await Cgroups.remove(cg)
 
     if os.WIFSIGNALED(status):

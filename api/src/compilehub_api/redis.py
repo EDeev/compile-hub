@@ -5,7 +5,8 @@ from redis.asyncio import Redis as _Redis
 
 
 def make_redis(url: str) -> _Redis:
-    return _Redis.from_url(url, decode_responses=True, health_check_interval=30)
+    # таймаут сокета больше любого XREAD/XREADGROUP BLOCK (до 15 с), иначе блокирующее чтение обрывается
+    return _Redis.from_url(url, decode_responses=True, health_check_interval=30, socket_timeout=30)
 
 
 def _redis(request: Request) -> _Redis:
