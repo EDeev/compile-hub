@@ -13,6 +13,23 @@ export default defineConfig({
       "/api": { target: "http://localhost:8000", ws: true }
     }
   },
+  build: {
+    // крупные библиотеки — отдельными файлами: кэшируются между обновлениями сайта
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: [
+            "react",
+            "react/jsx-runtime",
+            "react-dom",
+            "react-dom/client",
+            "react-router-dom"
+          ],
+          xterm: ["@xterm/xterm", "@xterm/addon-fit"]
+        }
+      }
+    }
+  },
   resolve: {
     alias: {
       "@": resolve(__dirname, "./src"),

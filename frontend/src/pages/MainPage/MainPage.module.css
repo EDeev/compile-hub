@@ -20,3 +20,8 @@
   padding: var(--spacing-xl) 0;
   transition: padding 0.3s ease;
 }
+
+.editorPlaceholder {
+  flex: 1;
+  height: 100%;
+}
