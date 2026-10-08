@@ -92,6 +92,18 @@ async def test_hello(runner, language):
     assert result.memory_kb > 0 and result.time_ms is not None
 
 
+async def test_resources_are_measured_for_the_program_itself(runner):
+    """Память и CPU — самой программы (ch-rusage), а не nsjail и не страничного кэша группы."""
+    result, _, _ = await run(runner, "c", HELLO["c"])
+    assert result.verdict == Verdict.OK and 0 < result.memory_kb < 8 * 1024, result.memory_kb
+    code = "x = bytearray(60 * 1024 * 1024)\nprint(len(x))"
+    result, _, _ = await run(runner, "python", code)
+    assert result.verdict == Verdict.OK and 60 * 1024 < result.memory_kb < 90 * 1024, result.memory_kb
+    loop = "int main(){ volatile long x = 0; for (long i = 0; i < 300000000; i++) x += i; }"
+    result, _, _ = await run(runner, "cpp", loop)
+    assert result.verdict == Verdict.OK and result.time_ms > 50, result.time_ms
+
+
 async def test_stdin_and_streams(runner):
     code = """
         import sys
