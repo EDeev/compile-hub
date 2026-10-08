@@ -157,7 +157,12 @@ async def test_wall_time_limit(runner):
 async def test_memory_limit(runner):
     result, _, _ = await run(runner, "python", "x = bytearray(512 * 1024 * 1024)\nprint(len(x))")
     assert result.verdict in (Verdict.MEMORY_LIMIT, Verdict.RUNTIME_ERROR)  # MemoryError или OOM-kill
-    code = '#include <vector>\n#include <cstdio>\nint main(){ std::vector<char> v(400u<<20, 1); printf("%d", v[123]); }'
+    # volatile — компилятор не вправе выбросить выделение (GCC 16 убирает неиспользуемый vector целиком)
+    code = (
+        "#include <cstddef>\n"
+        "int main(){ const std::size_t n = 400u << 20; volatile char *p = new char[n];"
+        " for (std::size_t i = 0; i < n; i += 4096) p[i] = 1; return p[4096]; }"
+    )
     result, _, _ = await run(runner, "cpp", code)
     assert result.verdict == Verdict.MEMORY_LIMIT
 
