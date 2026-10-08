@@ -1,17 +1,16 @@
 from fastapi import APIRouter, Response
 from sqlalchemy import text
 
-from compilehub_protocol import PAUSED_KEY
-
 from ..db import Session
 from ..redis import Redis
+from ..services import workers as workers_service
 
 router = APIRouter()
 
 
 @router.get("/api/health")
 async def health(session: Session, redis: Redis, response: Response) -> dict:
-    """Живость: 200, если доступны Postgres и Redis; число живых воркеров и пауза — для информации."""
+    """Живость: 200, если доступны Postgres и Redis; живые воркеры и пауза по температуре — для информации."""
     db_ok = redis_ok = False
     workers, paused = 0, False
     try:
@@ -20,8 +19,8 @@ async def health(session: Session, redis: Redis, response: Response) -> dict:
     except Exception:  # noqa: BLE001
         pass
     try:
-        workers = len([k async for k in redis.scan_iter("workers:*") if k != PAUSED_KEY])
-        paused = bool(await redis.exists(PAUSED_KEY))
+        live = await workers_service.live(redis)
+        workers, paused = len(live), workers_service.all_paused(live)
         redis_ok = True
     except Exception:  # noqa: BLE001
         pass

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from compilehub_api.main import create_app
 from compilehub_api.migrations import config as alembic_config
 from compilehub_api.models import Base
+from compilehub_protocol import WorkerInfo
 
 from .conftest import DATABASE_URL, needs_services, reset_schema, settings
 
@@ -40,8 +41,8 @@ async def test_health_ok(client):
 
 
 async def test_health_counts_workers_and_pause(app, client):
-    await app.state.redis.set("workers:w1", "1", ex=15)
-    await app.state.redis.set("workers:paused", "1")
+    info = WorkerInfo(name="w1", slots=1, busy=0, languages={"python": "3.12"}, paused=True)
+    await app.state.redis.set("workers:w1", info.dump(), ex=15)
     assert (await client.get("/api/health")).json() | {} == {
         "status": "ok",
         "db": True,

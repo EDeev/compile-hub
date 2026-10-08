@@ -39,9 +39,6 @@ def worker_key(name: str) -> str:
     return f"workers:{name}"
 
 
-PAUSED_KEY = "workers:paused"  # воркер на паузе по температуре — API отвечает 503 overheated
-
-
 class Model(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, frozen=True)
 
@@ -79,15 +76,28 @@ class Job(Model):
     interactive: bool = False
     limits: Limits = Limits()
     attempt: int = 0
+    enqueued_at: float | None = None  # unix-время постановки в очередь — для метрики ожидания
 
 
 class Result(Model):
     run_id: UUID
     verdict: Verdict
     exit_code: int | None = None
+    signal: str | None = None  # SIGSEGV и т. п., если программу убил сигнал
     time_ms: int | None = None
     memory_kb: int | None = None
     output: str = ""  # stdout+stderr (или вывод компилятора), не больше Limits.output_bytes
+
+
+class WorkerInfo(Model):
+    """Сердцебиение воркера: `workers:{name}` с TTL — живые воркеры, их языки и пауза по температуре."""
+
+    name: str
+    slots: int
+    busy: int
+    languages: dict[str, str]  # id языка → версия тулчейна
+    paused: bool = False
+    temperature: float | None = None
 
 
 # ---------------------------------------------------------------- события запуска (воркер → клиент)
@@ -125,6 +135,7 @@ class Exit(Model):
     type: Literal["exit"] = "exit"
     verdict: Verdict
     exit_code: int | None = None
+    signal: str | None = None
     time_ms: int | None = None
     memory_kb: int | None = None
 
