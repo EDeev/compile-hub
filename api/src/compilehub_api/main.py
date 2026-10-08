@@ -1,3 +1,5 @@
+import asyncio
+import contextlib
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -9,7 +11,8 @@ from .config import Settings, get_settings
 from .db import make_engine, make_sessionmaker
 from .mail import Mailer
 from .redis import make_redis
-from .routers import auth, health, me
+from .routers import auth, files, health, me
+from .services import maintenance
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -20,7 +23,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         engine = make_engine(settings.database_url)
         app.state.sessionmaker = make_sessionmaker(engine)
         app.state.redis = make_redis(settings.redis_url)
+        tasks = []
+        if settings.maintenance:
+            tasks.append(asyncio.create_task(maintenance.loop(app.state.sessionmaker, app.state.redis)))
         yield
+        for task in tasks:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
         await app.state.redis.aclose()
         await engine.dispose()
 
@@ -34,7 +44,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.mailer = Mailer(settings)
     errors.install(app)
-    for module in (health, auth, me):
+    for module in (health, auth, me, files):
         app.include_router(module.router)
     return app
 

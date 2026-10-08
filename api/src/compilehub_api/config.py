@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     mail_from: str = "CompileHub <no-reply@compilehub.ru>"
 
     queue_max: int = 30  # больше задач в очереди — 503 queue_full
+    maintenance: bool = True  # фоновая чистка (в тестах выключена)
     real_ip_header: str = "x-real-ip"
 
     @model_validator(mode="after")

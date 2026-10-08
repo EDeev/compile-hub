@@ -138,3 +138,85 @@ class AccessOut(Camel):
 
 class AvailableOut(Camel):
     available: bool
+
+
+# ---------------------------------------------------------------- файлы и папки
+
+FILE_BASE_RE = re.compile(r"^[A-Za-z0-9_-]{1,20}$")
+FOLDER_RE = re.compile(r"^[\w -]{1,20}$")
+
+
+def _file_name(v: str) -> str:
+    base, dot, ext = v.rpartition(".")
+    if not dot or not FILE_BASE_RE.match(base) or not ext:
+        raise ValueError("name.ext, name 1–20 characters: latin letters, digits, _ and -")
+    return v
+
+
+def _folder_name(v: str) -> str:
+    v = v.strip()
+    if not FOLDER_RE.match(v):
+        raise ValueError("1–20 characters: letters, digits, spaces, _ and -")
+    return v
+
+
+FileName = Annotated[str, AfterValidator(_file_name)]
+FolderName = Annotated[str, AfterValidator(_folder_name)]
+
+
+class ItemOut(Camel):
+    """Файл или папка в формате фронтенда (frontend/src/types/fileSystem.ts)."""
+
+    id: int
+    name: str
+    type: Literal["file", "folder"]
+    folder: int | None = None  # только у файла: id папки или null — корень
+    language: str | None = None  # только у файла
+    size: str
+    modified: str
+
+
+class FileOut(ItemOut):
+    code: str
+    stdin: str
+
+
+class FileCreate(Camel):
+    name: FileName
+    language: str | None = None  # по умолчанию — по расширению
+    folder_id: int | None = None
+    code: str | None = None  # по умолчанию — шаблон языка
+    stdin: str = ""
+
+
+class FilePatch(Camel):
+    name: FileName | None = None
+    folder_id: int | None = None  # передан null — перенести в корень; не передан — не трогать
+    code: str | None = None
+    stdin: str | None = None
+
+
+class FolderIn(Camel):
+    name: FolderName
+
+
+class ImportFolder(Camel):
+    id: int  # id из localStorage гостя — им ссылаются файлы
+    name: FolderName
+
+
+class ImportFile(Camel):
+    name: FileName
+    folder: int | None = None
+    code: str = ""
+    stdin: str = ""
+
+
+class ImportIn(Camel):
+    folders: list[ImportFolder] = Field(default_factory=list, max_length=50)
+    files: list[ImportFile] = Field(default_factory=list, max_length=200)
+
+
+class ImportOut(Camel):
+    items: list[ItemOut]
+    skipped: int  # не поместились в лимиты или не прошли проверку

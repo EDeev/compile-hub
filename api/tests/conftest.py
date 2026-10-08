@@ -28,6 +28,7 @@ def settings(**overrides) -> Settings:
         "jwt_secret": "test-secret-test-secret-test-secret",
         "public_url": "https://compilehub.test",
         "cookie_secure": False,
+        "maintenance": False,
     }
     return Settings(**(base | overrides))
 
