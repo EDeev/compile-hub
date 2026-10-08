@@ -163,7 +163,6 @@ def nsjail_argv(
         "--rlimit_nofile", "64",
         "--rlimit_core", "0",
         "--rlimit_stack", "64",
-        "--rlimit_nproc", "inf",  # процессы ограничивает pids.max группы
         "--seccomp_string", SECCOMP,
         "--bindmount", f"{box}:/box",
         "--mount", f"none:/tmp:tmpfs:size={limits.tmp_mb * 1024 * 1024}",
