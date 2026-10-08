@@ -74,3 +74,18 @@ async def test_metrics(client):
     assert 'compilehub_api_errors_total{code="no_workers"}' in text
     assert 'compilehub_api_request_seconds_count{method="POST",route="/api/runs",status="503"}' in text
     assert "compilehub_api_queue_length" in text
+
+
+async def test_mail_headers(monkeypatch):
+    from compilehub_api.mail import Mailer
+
+    sent = {}
+
+    async def fake_send(message, **kwargs):
+        sent["message"] = message
+
+    monkeypatch.setattr("compilehub_api.mail.aiosmtplib.send", fake_send)
+    await Mailer(settings(smtp_host="smtp.test")).send("verify", "ru", "a@b.c", "alice", "https://x/verify?token=t")
+    message = sent["message"]
+    assert message["Message-ID"].endswith("@compilehub.ru>") and message["Date"]
+    assert message["Subject"] == "Подтвердите почту в CompileHub" and "alice" in message.get_content()

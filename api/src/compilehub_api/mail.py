@@ -4,6 +4,7 @@
 import logging
 from dataclasses import dataclass
 from email.message import EmailMessage
+from email.utils import formatdate, make_msgid, parseaddr
 
 import aiosmtplib
 
@@ -60,6 +61,9 @@ class Mailer:
             return
         msg = EmailMessage()
         msg["From"], msg["To"], msg["Subject"] = s.mail_from, to, subject
+        # без Message-ID и Date письма штрафуют почтовые фильтры (Gmail и т. п.)
+        msg["Message-ID"] = make_msgid(domain=parseaddr(s.mail_from)[1].rpartition("@")[2] or None)
+        msg["Date"] = formatdate(localtime=False)
         msg.set_content(text)
         try:
             await aiosmtplib.send(

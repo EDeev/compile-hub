@@ -45,7 +45,7 @@ from ..services.runs import parse_uuid, queue_length
 
 router = APIRouter(prefix="/api", tags=["runs"])
 
-BATCH = Limits(wall_ms=5_000, cpu_ms=3_000, memory_mb=256)
+BATCH = Limits(wall_ms=10_000, cpu_ms=3_000, memory_mb=256)  # стена с запасом: dorm бывает занят, CPU-лимит — 3 с
 INTERACTIVE = Limits(wall_ms=60_000, cpu_ms=5_000, memory_mb=256, idle_ms=30_000)
 STREAM_TTL = 600  # с: ключи ввода и отмены
 MAX_STDIN_MESSAGE = 64 * 1024

@@ -111,7 +111,7 @@ async def test_guest_run_lifecycle(app, client):
 
     job = await fake_worker(redis)
     assert str(job.run_id) == created["runId"] and job.stdin == "5\n" and not job.interactive
-    assert job.limits.wall_ms == 5000 and job.limits.idle_ms is None and job.enqueued_at
+    assert job.limits.wall_ms == 10000 and job.limits.idle_ms is None and job.enqueued_at
 
     run = await wait_finished(client, created["runId"], created["streamToken"])
     assert run["verdict"] == "OK" and run["output"] == "1\n" and run["timeMs"] == 7 and run["memoryKb"] == 900
