@@ -29,7 +29,7 @@
   height: 40px;
   background-color: var(--bg-secondary);
   z-index: 1000;
-  top: 41%;
+  top: var(--spacing-md); /* на уровне поиска: первая остановка Tab в панели — вверху, а не посередине */
   right: -19px;
   cursor: pointer;
   border: 1px solid var(--border-color);

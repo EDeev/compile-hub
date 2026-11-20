@@ -3,11 +3,13 @@ import { useThemeStore } from "@/store/themeStore"
 import styles from "./ThemeSwitcher.module.css"
 import { useState } from "react"
 import { AuthService } from "@/services/authService"
+import { useT } from "@/i18n"
 
-type ThemeSwitcherProps = React.HTMLAttributes<HTMLSpanElement>
+type ThemeSwitcherProps = { className?: string }
 
 export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
   const { theme, toggleTheme } = useThemeStore()
+  const t = useT()
   const [isAnimating, setIsAnimating] = useState(false)
 
   const handleClick = () => {
@@ -24,8 +26,11 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
   }
 
   return (
-    <span
-      className={`${styles.switcher} ${className}`.trim()}
+    // кнопка, а не span: доступна с клавиатуры (Tab, Enter/пробел) и называется для экранных читалок
+    <button
+      type='button'
+      className={`${styles.switcher} ${className ?? ""}`.trim()}
+      aria-label={t(theme === "dark" ? "theme.toLight" : "theme.toDark")}
       onClick={handleClick}
     >
       <span
@@ -39,6 +44,6 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className }) => {
           <MdNightlightRound size={30} className={styles.icon} />
         )}
       </span>
-    </span>
+    </button>
   )
 }

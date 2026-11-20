@@ -2,6 +2,13 @@
   display: inline-flex;
   align-items: center;
   cursor: pointer;
+  /* сброс вида кнопки — выглядит как прежняя иконка */
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  border-radius: var(--border-radius);
 }
 
 .iconContainer {

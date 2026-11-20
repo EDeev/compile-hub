@@ -74,6 +74,7 @@ export const Filebar = () => {
   }
 
   const visibleItems = useFileFilter(items, currentFolder, searchText)
+  const panelHidden = isMobile ? !filesOpen : !isFilebarOpen
 
   const classes = [
     styles.filebar,
@@ -89,7 +90,23 @@ export const Filebar = () => {
         <div className={styles.backdrop} onClick={() => setFilesOpen(false)} />
       )}
       <div className={classes}>
-        <div className={styles.filebarContainer}>
+        {/* Переключатель файлбара (на телефоне — кнопка в шапке). Первым в разметке и вверху панели: Tab идёт
+            сверху вниз — переключатель, поиск, список, кнопки создания */}
+        {!isMobile && (
+          <button
+            className={styles.openMenuButton}
+            aria-label={t(isFilebarOpen ? "files.hide" : "files.show")}
+            onClick={() => setFilebarOpen(!isFilebarOpen)}
+          >
+            {isFilebarOpen ? (
+              <MdChevronLeft size={30} />
+            ) : (
+              <MdChevronRight size={30} />
+            )}
+          </button>
+        )}
+        {/* закрытая панель уезжает за край экрана — inert убирает её из обхода Tab и для экранных читалок */}
+        <div className={styles.filebarContainer} inert={panelHidden}>
           {/* Поиск */}
           <Input
             icon={<MdSearch />}
@@ -190,20 +207,6 @@ export const Filebar = () => {
           </div>
         </div>
 
-        {/* Переключатель файлбара (на телефоне — кнопка в шапке) */}
-        {!isMobile && (
-          <button
-            className={styles.openMenuButton}
-            aria-label={t(isFilebarOpen ? "files.hide" : "files.show")}
-            onClick={() => setFilebarOpen(!isFilebarOpen)}
-          >
-            {isFilebarOpen ? (
-              <MdChevronLeft size={30} />
-            ) : (
-              <MdChevronRight size={30} />
-            )}
-          </button>
-        )}
         {isLoading && <CgSpinner className={styles.loadSpinner} size={35} />}
       </div>
     </>
