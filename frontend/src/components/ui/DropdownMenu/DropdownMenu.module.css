@@ -19,6 +19,10 @@
   color: var(--primary-hover);
 }
 
+.trigger:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
 .trigger.disabled {
   opacity: 0.5;
   cursor: not-allowed;

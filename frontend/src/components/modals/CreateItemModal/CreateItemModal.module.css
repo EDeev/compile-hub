@@ -49,6 +49,10 @@
   background-color: var(--bg-secondary);
 }
 
+.selectExt:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
 .selectExt option {
   border-radius: 0;
   background-color: var(--bg-color);

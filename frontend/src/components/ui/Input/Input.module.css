@@ -35,6 +35,12 @@
   padding-right: var(--spacing-md);
 }
 
+/* outline выше убран ради рамки — фокус с клавиатуры показываем кольцом, как у кнопок */
+.inputLine input:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
 .isValidating {
   padding-right: 30px;
 }
